@@ -7,9 +7,11 @@ import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import Speedometer from '@/components/Speedometer';
+import MusicSelector from '@/components/MusicSelector';
 import { 
   Car, MapPin, Users, Bell, Settings, LogOut, 
-  Menu, X, ChevronRight, UserPlus, Gauge
+  Menu, X, ChevronRight, UserPlus, Gauge, Shield, Music2
 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
@@ -24,12 +26,29 @@ L.Icon.Default.mergeOptions({
 });
 
 // Custom user marker
-const createUserIcon = (picture, isCurrentUser = false) => {
+const createUserIcon = (picture, isCurrentUser = false, hasMusic = false) => {
   const borderColor = isCurrentUser ? '#22c55e' : '#06b6d4';
+  const musicIndicator = hasMusic ? `
+    <div style="
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      width: 16px;
+      height: 16px;
+      background: #22c55e;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+    ">🎵</div>
+  ` : '';
+  
   return L.divIcon({
     className: 'custom-marker',
     html: `
       <div style="
+        position: relative;
         width: 44px;
         height: 44px;
         border-radius: 50%;
@@ -41,6 +60,7 @@ const createUserIcon = (picture, isCurrentUser = false) => {
         <img src="${picture || 'https://via.placeholder.com/44'}" 
              style="width: 100%; height: 100%; object-fit: cover;" 
              onerror="this.src='https://via.placeholder.com/44'" />
+        ${musicIndicator}
       </div>
     `,
     iconSize: [44, 44],
@@ -70,22 +90,45 @@ const Dashboard = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [showSpeedometer, setShowSpeedometer] = useState(true);
+  const [currentSpeed, setCurrentSpeed] = useState(0);
+  const [tripStats, setTripStats] = useState({
+    top_speed: 0,
+    total_distance: 0,
+    avg_speed: 0,
+    trip_start: null
+  });
+  const [currentSong, setCurrentSong] = useState(user?.current_song || null);
+  const [squadInvites, setSquadInvites] = useState([]);
 
-  // Get user's current location
+  // Get user's current location with speed
   useEffect(() => {
     if (navigator.geolocation) {
       const watchId = navigator.geolocation.watchPosition(
         async (position) => {
-          const { latitude, longitude } = position.coords;
+          const { latitude, longitude, speed } = position.coords;
           setUserLocation([latitude, longitude]);
           
-          // Update location on server
+          // Convert speed from m/s to mph
+          const speedMph = speed ? speed * 2.237 : 0;
+          setCurrentSpeed(speedMph);
+          
+          // Update location on server with speed
           try {
-            await axios.post(
+            const response = await axios.post(
               `${API}/location/update`,
-              { lat: latitude, lng: longitude },
+              { 
+                lat: latitude, 
+                lng: longitude,
+                speed: speedMph,
+                heading: position.coords.heading || 0
+              },
               { withCredentials: true }
             );
+            
+            if (response.data.trip_stats) {
+              setTripStats(response.data.trip_stats);
+            }
           } catch (error) {
             console.error('Failed to update location:', error);
           }
@@ -95,7 +138,7 @@ const Dashboard = () => {
           // Default to Los Angeles if location denied
           setUserLocation([34.0522, -118.2437]);
         },
-        { enableHighAccuracy: true, maximumAge: 30000, timeout: 27000 }
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
       );
 
       return () => navigator.geolocation.clearWatch(watchId);
@@ -120,8 +163,12 @@ const Dashboard = () => {
   // Fetch incoming requests
   const fetchRequests = useCallback(async () => {
     try {
-      const response = await axios.get(`${API}/requests/incoming`, { withCredentials: true });
-      setIncomingRequests(response.data);
+      const [reqRes, invRes] = await Promise.all([
+        axios.get(`${API}/requests/incoming`, { withCredentials: true }),
+        axios.get(`${API}/squads/invites`, { withCredentials: true })
+      ]);
+      setIncomingRequests(reqRes.data);
+      setSquadInvites(invRes.data);
     } catch (error) {
       console.error('Failed to fetch requests:', error);
     }
@@ -148,11 +195,11 @@ const Dashboard = () => {
     fetchRequests();
     fetchLobbyDetails();
     
-    // Poll for updates every 30 seconds
+    // Poll for updates every 15 seconds
     const interval = setInterval(() => {
       fetchNearbyUsers();
       fetchRequests();
-    }, 30000);
+    }, 15000);
 
     return () => clearInterval(interval);
   }, [fetchNearbyUsers, fetchRequests, fetchLobbyDetails]);
@@ -183,12 +230,25 @@ const Dashboard = () => {
     }
   };
 
+  const handleResetTrip = async () => {
+    try {
+      const response = await axios.post(`${API}/location/reset-trip`, {}, { withCredentials: true });
+      setTripStats(response.data.trip_stats);
+      toast.success('Trip reset!');
+    } catch (error) {
+      toast.error('Failed to reset trip');
+    }
+  };
+
   const navItems = [
     { icon: <MapPin className="w-5 h-5" />, label: 'Map', path: '/dashboard', active: true },
     { icon: <Users className="w-5 h-5" />, label: 'Lobbies', path: '/lobbies' },
+    { icon: <Shield className="w-5 h-5" />, label: 'Squad', path: '/squad' },
     { icon: <Car className="w-5 h-5" />, label: 'Garage', path: '/garage' },
     { icon: <Settings className="w-5 h-5" />, label: 'Profile', path: '/profile' },
   ];
+
+  const totalNotifications = incomingRequests.length + squadInvites.length;
 
   return (
     <div className="h-screen bg-void flex overflow-hidden">
@@ -263,6 +323,15 @@ const Dashboard = () => {
               ))}
             </nav>
 
+            {/* Music Selector */}
+            <div className="p-4 border-t border-white/10">
+              <MusicSelector
+                currentSong={currentSong}
+                onSongUpdate={setCurrentSong}
+                onClear={() => setCurrentSong(null)}
+              />
+            </div>
+
             {/* Requests notification */}
             <div className="p-4 border-t border-white/10">
               <button
@@ -274,9 +343,9 @@ const Dashboard = () => {
                   <Bell className="w-5 h-5 text-neon-green" />
                   <span className="font-mono text-sm uppercase tracking-wider">Requests</span>
                 </div>
-                {incomingRequests.length > 0 && (
+                {totalNotifications > 0 && (
                   <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                    {incomingRequests.length}
+                    {totalNotifications}
                   </span>
                 )}
               </button>
@@ -316,12 +385,15 @@ const Dashboard = () => {
             {/* Current user marker */}
             <Marker
               position={userLocation}
-              icon={createUserIcon(user?.picture, true)}
+              icon={createUserIcon(user?.picture, true, !!currentSong)}
             >
               <Popup className="custom-popup">
                 <div className="bg-card p-3 rounded-none min-w-[200px]">
                   <p className="font-unbounded font-bold text-sm">{user?.name}</p>
                   <p className="text-xs text-neon-green font-mono">YOU</p>
+                  {currentSong && (
+                    <p className="text-xs text-zinc-400 mt-1">🎵 {currentSong.name}</p>
+                  )}
                 </div>
               </Popup>
             </Marker>
@@ -332,7 +404,7 @@ const Dashboard = () => {
                 <Marker
                   key={u.user_id}
                   position={[u.location.lat, u.location.lng]}
-                  icon={createUserIcon(u.picture)}
+                  icon={createUserIcon(u.picture, false, !!u.current_song)}
                   eventHandlers={{
                     click: () => setSelectedUser(u)
                   }}
@@ -345,6 +417,9 @@ const Dashboard = () => {
                           {u.primary_car.year} {u.primary_car.make} {u.primary_car.model}
                         </p>
                       )}
+                      {u.current_song && (
+                        <p className="text-xs text-green-500 mt-1">🎵 {u.current_song.name}</p>
+                      )}
                     </div>
                   </Popup>
                 </Marker>
@@ -352,6 +427,47 @@ const Dashboard = () => {
             ))}
           </MapContainer>
         )}
+
+        {/* Speedometer Panel - Bottom Left */}
+        <AnimatePresence>
+          {showSpeedometer && (
+            <motion.div
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              className="map-panel bottom-4 left-4"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-mono uppercase text-zinc-500">Driving Stats</span>
+                <button
+                  onClick={handleResetTrip}
+                  className="text-xs text-neon-cyan hover:text-neon-cyan/80"
+                  data-testid="reset-trip-btn"
+                >
+                  Reset Trip
+                </button>
+              </div>
+              <Speedometer
+                speed={currentSpeed}
+                topSpeed={tripStats.top_speed || 0}
+                avgSpeed={tripStats.avg_speed || 0}
+                distance={tripStats.total_distance || 0}
+                tripStart={tripStats.trip_start}
+                currentSong={currentSong}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Toggle Speedometer Button */}
+        <button
+          onClick={() => setShowSpeedometer(!showSpeedometer)}
+          className="map-panel bottom-4 left-4 lg:hidden glass-panel p-3"
+          style={{ left: showSpeedometer ? 'auto' : '1rem', right: showSpeedometer ? '1rem' : 'auto' }}
+          data-testid="toggle-speedometer-btn"
+        >
+          <Gauge className="w-5 h-5" />
+        </button>
 
         {/* Lobby info panel */}
         <div className="map-panel top-4 right-4 glass-panel p-4 max-w-xs">
@@ -435,6 +551,27 @@ const Dashboard = () => {
                   <p className="text-xs text-zinc-400">{selectedUser.bio || 'Car enthusiast'}</p>
                 </div>
               </div>
+
+              {/* Current Song */}
+              {selectedUser.current_song && (
+                <div className="bg-green-500/10 border border-green-500/20 p-3 mb-4 flex items-center gap-2">
+                  <Music2 className="w-4 h-4 text-green-500" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold truncate">{selectedUser.current_song.name}</p>
+                    <p className="text-xs text-zinc-400 truncate">{selectedUser.current_song.artist}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Speed indicator */}
+              {selectedUser.location?.speed > 0 && (
+                <div className="bg-secondary/50 p-3 mb-4 flex items-center justify-between">
+                  <span className="text-xs font-mono uppercase text-zinc-400">Current Speed</span>
+                  <span className="font-unbounded font-bold text-neon-cyan">
+                    {Math.round(selectedUser.location.speed)} MPH
+                  </span>
+                </div>
+              )}
 
               {selectedUser.primary_car && (
                 <div className="glass-panel p-4 mb-4">
