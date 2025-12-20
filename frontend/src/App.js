@@ -99,6 +99,14 @@ function AppRouter() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/squad"
+        element={
+          <ProtectedRoute>
+            <Squad />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
