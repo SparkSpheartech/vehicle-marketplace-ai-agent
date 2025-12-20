@@ -12,6 +12,7 @@ import Garage from "@/pages/Garage";
 import Lobbies from "@/pages/Lobbies";
 import UserProfile from "@/pages/UserProfile";
 import Requests from "@/pages/Requests";
+import Squad from "@/pages/Squad";
 
 // Auth context
 import { AuthProvider, useAuth } from "@/context/AuthContext";
