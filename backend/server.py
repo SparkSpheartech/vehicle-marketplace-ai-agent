@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, WebSocket, WebSocketDisconnect
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,10 +6,12 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone, timedelta
 import httpx
+import json
+import asyncio
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -32,6 +34,61 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# ============== WEBSOCKET CONNECTION MANAGER ==============
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, WebSocket] = {}  # user_id -> websocket
+        self.lobby_connections: Dict[str, set] = {}  # lobby_id -> set of user_ids
+
+    async def connect(self, websocket: WebSocket, user_id: str):
+        await websocket.accept()
+        self.active_connections[user_id] = websocket
+        logger.info(f"User {user_id} connected via WebSocket")
+
+    def disconnect(self, user_id: str):
+        if user_id in self.active_connections:
+            del self.active_connections[user_id]
+        # Remove from all lobbies
+        for lobby_id in self.lobby_connections:
+            self.lobby_connections[lobby_id].discard(user_id)
+        logger.info(f"User {user_id} disconnected")
+
+    def join_lobby(self, user_id: str, lobby_id: str):
+        if lobby_id not in self.lobby_connections:
+            self.lobby_connections[lobby_id] = set()
+        self.lobby_connections[lobby_id].add(user_id)
+
+    def leave_lobby(self, user_id: str, lobby_id: str):
+        if lobby_id in self.lobby_connections:
+            self.lobby_connections[lobby_id].discard(user_id)
+
+    async def send_personal(self, user_id: str, message: dict):
+        if user_id in self.active_connections:
+            try:
+                await self.active_connections[user_id].send_json(message)
+            except Exception as e:
+                logger.error(f"Error sending to {user_id}: {e}")
+
+    async def broadcast_to_lobby(self, lobby_id: str, message: dict, exclude_user: str = None):
+        if lobby_id in self.lobby_connections:
+            for user_id in self.lobby_connections[lobby_id]:
+                if user_id != exclude_user and user_id in self.active_connections:
+                    try:
+                        await self.active_connections[user_id].send_json(message)
+                    except Exception as e:
+                        logger.error(f"Error broadcasting to {user_id}: {e}")
+
+    async def broadcast_to_squad(self, squad_members: List[str], message: dict, exclude_user: str = None):
+        for user_id in squad_members:
+            if user_id != exclude_user and user_id in self.active_connections:
+                try:
+                    await self.active_connections[user_id].send_json(message)
+                except Exception as e:
+                    logger.error(f"Error sending to squad member {user_id}: {e}")
+
+manager = ConnectionManager()
+
 # ============== MODELS ==============
 
 class UserBase(BaseModel):
@@ -41,37 +98,49 @@ class UserBase(BaseModel):
     name: str
     picture: Optional[str] = None
     bio: Optional[str] = ""
-    avatar_url: Optional[str] = None  # Ready Player Me avatar URL
-    avatar_style: Optional[dict] = Field(default_factory=lambda: {
+    avatar_url: Optional[str] = None
+    avatar_config: Optional[dict] = Field(default_factory=lambda: {
+        "body_type": "average",
         "skin_tone": "#FFD5C8",
         "hair_style": "short",
         "hair_color": "#2C1810",
+        "eye_color": "#4A3728",
         "outfit": "racing_jacket",
         "outfit_color": "#22c55e",
-        "accessory": "none"
+        "pants": "jeans",
+        "pants_color": "#1f2937",
+        "shoes": "sneakers",
+        "shoes_color": "#ffffff",
+        "accessory": "none",
+        "facial_hair": "none",
+        "glasses": "none"
     })
     current_lobby: Optional[str] = None
     current_squad: Optional[str] = None
-    location: Optional[dict] = None  # {lat, lng, speed, updated_at}
+    location: Optional[dict] = None
     spotify_connected: bool = False
-    spotify_access_token: Optional[str] = None
-    spotify_refresh_token: Optional[str] = None
-    current_song: Optional[dict] = None  # {name, artist, album_art}
+    current_song: Optional[dict] = None
     trip_stats: Optional[dict] = Field(default_factory=lambda: {
         "top_speed": 0,
         "total_distance": 0,
         "avg_speed": 0,
-        "trip_start": None
+        "trip_start": None,
+        "all_time_distance": 0,
+        "all_time_top_speed": 0
     })
+    achievements: List[str] = []
+    notifications_enabled: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     bio: Optional[str] = None
-    avatar_style: Optional[dict] = None
+    avatar_config: Optional[dict] = None
     avatar_url: Optional[str] = None
     current_song: Optional[dict] = None
+    notifications_enabled: Optional[bool] = None
 
+# Car Models
 class Car(BaseModel):
     model_config = ConfigDict(extra="ignore")
     car_id: str = Field(default_factory=lambda: f"car_{uuid.uuid4().hex[:12]}")
@@ -81,7 +150,7 @@ class Car(BaseModel):
     year: int
     color: str = "#22c55e"
     secondary_color: Optional[str] = "#000000"
-    model_3d: Optional[str] = None  # 3D model identifier
+    model_3d: Optional[str] = None
     mods: Optional[dict] = Field(default_factory=lambda: {
         "body_kit": "stock",
         "spoiler": "none",
@@ -96,6 +165,8 @@ class Car(BaseModel):
     weight: Optional[int] = 3000
     drivetrain: Optional[str] = "RWD"
     is_primary: bool = False
+    ratings: List[dict] = []
+    avg_rating: float = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class CarCreate(BaseModel):
@@ -126,6 +197,11 @@ class CarUpdate(BaseModel):
     drivetrain: Optional[str] = None
     is_primary: Optional[bool] = None
 
+class CarRating(BaseModel):
+    rating: int  # 1-5 stars
+    comment: Optional[str] = None
+
+# Lobby Models
 class Lobby(BaseModel):
     model_config = ConfigDict(extra="ignore")
     lobby_id: str = Field(default_factory=lambda: f"lobby_{uuid.uuid4().hex[:12]}")
@@ -140,14 +216,14 @@ class Squad(BaseModel):
     model_config = ConfigDict(extra="ignore")
     squad_id: str = Field(default_factory=lambda: f"squad_{uuid.uuid4().hex[:12]}")
     name: str
-    tag: str  # 3-4 character tag like [CREW]
+    tag: str
     owner_id: str
-    members: List[str] = []  # list of user_ids, max 8
+    members: List[str] = []
     color: str = "#22c55e"
     logo_url: Optional[str] = None
     description: Optional[str] = None
     is_active: bool = True
-    payment_id: Optional[str] = None  # PayPal payment ID
+    payment_id: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class SquadCreate(BaseModel):
@@ -156,33 +232,113 @@ class SquadCreate(BaseModel):
     color: str = "#22c55e"
     description: Optional[str] = None
 
-class SquadInvite(BaseModel):
+# Chat Models
+class ChatMessage(BaseModel):
     model_config = ConfigDict(extra="ignore")
-    invite_id: str = Field(default_factory=lambda: f"inv_{uuid.uuid4().hex[:12]}")
+    message_id: str = Field(default_factory=lambda: f"msg_{uuid.uuid4().hex[:12]}")
     squad_id: str
-    from_user_id: str
-    to_user_id: str
-    status: str = "pending"  # pending, accepted, declined
+    user_id: str
+    content: str
+    message_type: str = "text"  # text, image, location
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-class JoinRequest(BaseModel):
+class ChatMessageCreate(BaseModel):
+    content: str
+    message_type: str = "text"
+
+# Car Meet/Event Models
+class CarMeet(BaseModel):
     model_config = ConfigDict(extra="ignore")
-    request_id: str = Field(default_factory=lambda: f"req_{uuid.uuid4().hex[:12]}")
-    from_user_id: str
-    to_user_id: str
-    status: str = "pending"  # pending, accepted, declined
-    message: Optional[str] = None
+    meet_id: str = Field(default_factory=lambda: f"meet_{uuid.uuid4().hex[:12]}")
+    title: str
+    description: str
+    host_id: str
+    lobby_id: str
+    location: dict  # {lat, lng, address}
+    start_time: datetime
+    end_time: Optional[datetime] = None
+    max_attendees: Optional[int] = None
+    attendees: List[str] = []
+    interested: List[str] = []
+    tags: List[str] = []  # e.g., ["JDM", "Euro", "American", "Show", "Cruise"]
+    is_public: bool = True
+    is_cancelled: bool = False
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-class JoinRequestCreate(BaseModel):
-    to_user_id: str
-    message: Optional[str] = None
+class CarMeetCreate(BaseModel):
+    title: str
+    description: str
+    location: dict
+    start_time: datetime
+    end_time: Optional[datetime] = None
+    max_attendees: Optional[int] = None
+    tags: List[str] = []
+    is_public: bool = True
+
+# Route Models
+class Route(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    route_id: str = Field(default_factory=lambda: f"route_{uuid.uuid4().hex[:12]}")
+    user_id: str
+    name: str
+    description: Optional[str] = None
+    waypoints: List[dict] = []  # [{lat, lng, timestamp}]
+    distance: float = 0
+    duration: int = 0  # seconds
+    top_speed: float = 0
+    avg_speed: float = 0
+    start_location: Optional[dict] = None
+    end_location: Optional[dict] = None
+    is_public: bool = True
+    likes: List[str] = []
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class RouteCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    waypoints: List[dict]
+    distance: float
+    duration: int
+    top_speed: float
+    avg_speed: float
+    is_public: bool = True
+
+# Notification Models
+class Notification(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    notification_id: str = Field(default_factory=lambda: f"notif_{uuid.uuid4().hex[:12]}")
+    user_id: str
+    type: str  # request, squad_invite, meet_reminder, achievement, nearby_driver
+    title: str
+    message: str
+    data: Optional[dict] = None
+    is_read: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# Achievement definitions
+ACHIEVEMENTS = {
+    "first_car": {"name": "First Ride", "description": "Added your first car to the garage", "icon": "🚗"},
+    "garage_5": {"name": "Car Collector", "description": "Own 5 cars in your garage", "icon": "🏎️"},
+    "garage_10": {"name": "Enthusiast", "description": "Own 10 cars in your garage", "icon": "🏆"},
+    "squad_leader": {"name": "Squad Leader", "description": "Created a squad", "icon": "👑"},
+    "squad_full": {"name": "Full Crew", "description": "Fill your squad with 8 members", "icon": "👥"},
+    "speed_demon": {"name": "Speed Demon", "description": "Reach 100+ mph", "icon": "⚡"},
+    "road_warrior": {"name": "Road Warrior", "description": "Drive 100+ miles total", "icon": "🛣️"},
+    "marathon": {"name": "Marathon Driver", "description": "Drive 500+ miles total", "icon": "🏁"},
+    "social_butterfly": {"name": "Social Butterfly", "description": "Connect with 10 drivers", "icon": "🦋"},
+    "event_host": {"name": "Event Host", "description": "Host your first car meet", "icon": "📍"},
+    "popular_host": {"name": "Popular Host", "description": "Host a meet with 10+ attendees", "icon": "🌟"},
+    "route_mapper": {"name": "Route Mapper", "description": "Save your first route", "icon": "🗺️"},
+    "rated_ride": {"name": "Rated Ride", "description": "Get your car rated by others", "icon": "⭐"},
+    "top_rated": {"name": "Top Rated", "description": "Get a 5-star rating on your car", "icon": "🌟"},
+    "early_adopter": {"name": "Early Adopter", "description": "Join during beta", "icon": "🚀"},
+}
 
 class LocationUpdate(BaseModel):
     lat: float
     lng: float
-    speed: Optional[float] = 0  # Speed in mph
-    heading: Optional[float] = 0  # Direction in degrees
+    speed: Optional[float] = 0
+    heading: Optional[float] = 0
 
 class LobbyJoin(BaseModel):
     city: str
@@ -193,10 +349,13 @@ class SpotifySongUpdate(BaseModel):
     artist: str
     album_art: Optional[str] = None
 
+class JoinRequestCreate(BaseModel):
+    to_user_id: str
+    message: Optional[str] = None
+
 # ============== AUTH HELPERS ==============
 
 async def get_current_user(request: Request) -> dict:
-    """Get current user from session token in cookie or Authorization header"""
     session_token = request.cookies.get("session_token")
     
     if not session_token:
@@ -211,7 +370,6 @@ async def get_current_user(request: Request) -> dict:
     if not session:
         raise HTTPException(status_code=401, detail="Invalid session")
     
-    # Check expiry with timezone awareness
     expires_at = session["expires_at"]
     if isinstance(expires_at, str):
         expires_at = datetime.fromisoformat(expires_at)
@@ -226,18 +384,94 @@ async def get_current_user(request: Request) -> dict:
     
     return user
 
+async def get_user_from_token(token: str) -> dict:
+    """Get user from session token for WebSocket auth"""
+    session = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
+    if not session:
+        return None
+    user = await db.users.find_one({"user_id": session["user_id"]}, {"_id": 0})
+    return user
+
+# ============== ACHIEVEMENT HELPERS ==============
+
+async def grant_achievement(user_id: str, achievement_id: str):
+    """Grant an achievement to a user if they don't have it"""
+    if achievement_id not in ACHIEVEMENTS:
+        return
+    
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    if not user:
+        return
+    
+    current_achievements = user.get("achievements", [])
+    if achievement_id in current_achievements:
+        return
+    
+    # Grant achievement
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$push": {"achievements": achievement_id}}
+    )
+    
+    # Create notification
+    achievement = ACHIEVEMENTS[achievement_id]
+    notification = {
+        "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
+        "user_id": user_id,
+        "type": "achievement",
+        "title": f"Achievement Unlocked: {achievement['name']}",
+        "message": achievement['description'],
+        "data": {"achievement_id": achievement_id, "icon": achievement['icon']},
+        "is_read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.notifications.insert_one(notification)
+    
+    # Send real-time notification
+    await manager.send_personal(user_id, {
+        "type": "achievement",
+        "achievement": achievement,
+        "achievement_id": achievement_id
+    })
+
+async def check_achievements(user_id: str, context: str = None):
+    """Check and grant achievements based on context"""
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    if not user:
+        return
+    
+    # Car-related achievements
+    car_count = await db.cars.count_documents({"user_id": user_id})
+    if car_count >= 1:
+        await grant_achievement(user_id, "first_car")
+    if car_count >= 5:
+        await grant_achievement(user_id, "garage_5")
+    if car_count >= 10:
+        await grant_achievement(user_id, "garage_10")
+    
+    # Distance achievements
+    trip_stats = user.get("trip_stats", {})
+    total_distance = trip_stats.get("all_time_distance", 0)
+    if total_distance >= 100:
+        await grant_achievement(user_id, "road_warrior")
+    if total_distance >= 500:
+        await grant_achievement(user_id, "marathon")
+    
+    # Speed achievements
+    top_speed = trip_stats.get("all_time_top_speed", 0)
+    if top_speed >= 100:
+        await grant_achievement(user_id, "speed_demon")
+
 # ============== AUTH ENDPOINTS ==============
 
 @api_router.post("/auth/session")
 async def exchange_session(request: Request, response: Response):
-    """Exchange session_id from Emergent Auth for session_token"""
     body = await request.json()
     session_id = body.get("session_id")
     
     if not session_id:
         raise HTTPException(status_code=400, detail="session_id required")
     
-    # Exchange session_id with Emergent Auth
     async with httpx.AsyncClient() as http_client:
         try:
             auth_response = await http_client.get(
@@ -252,12 +486,10 @@ async def exchange_session(request: Request, response: Response):
             logger.error(f"Auth error: {e}")
             raise HTTPException(status_code=401, detail="Authentication failed")
     
-    # Check if user exists, create if not
     existing_user = await db.users.find_one({"email": user_data["email"]}, {"_id": 0})
     
     if existing_user:
         user_id = existing_user["user_id"]
-        # Update user info
         await db.users.update_one(
             {"user_id": user_id},
             {"$set": {
@@ -266,7 +498,6 @@ async def exchange_session(request: Request, response: Response):
             }}
         )
     else:
-        # Create new user
         user_id = f"user_{uuid.uuid4().hex[:12]}"
         new_user = {
             "user_id": user_id,
@@ -275,13 +506,21 @@ async def exchange_session(request: Request, response: Response):
             "picture": user_data.get("picture"),
             "bio": "",
             "avatar_url": None,
-            "avatar_style": {
+            "avatar_config": {
+                "body_type": "average",
                 "skin_tone": "#FFD5C8",
                 "hair_style": "short",
                 "hair_color": "#2C1810",
+                "eye_color": "#4A3728",
                 "outfit": "racing_jacket",
                 "outfit_color": "#22c55e",
-                "accessory": "none"
+                "pants": "jeans",
+                "pants_color": "#1f2937",
+                "shoes": "sneakers",
+                "shoes_color": "#ffffff",
+                "accessory": "none",
+                "facial_hair": "none",
+                "glasses": "none"
             },
             "current_lobby": None,
             "current_squad": None,
@@ -292,13 +531,16 @@ async def exchange_session(request: Request, response: Response):
                 "top_speed": 0,
                 "total_distance": 0,
                 "avg_speed": 0,
-                "trip_start": None
+                "trip_start": None,
+                "all_time_distance": 0,
+                "all_time_top_speed": 0
             },
+            "achievements": ["early_adopter"],
+            "notifications_enabled": True,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.users.insert_one(new_user)
     
-    # Create session
     session_token = f"session_{uuid.uuid4().hex}"
     session_doc = {
         "user_id": user_id,
@@ -308,7 +550,6 @@ async def exchange_session(request: Request, response: Response):
     }
     await db.user_sessions.insert_one(session_doc)
     
-    # Set cookie
     response.set_cookie(
         key="session_token",
         value=session_token,
@@ -319,19 +560,16 @@ async def exchange_session(request: Request, response: Response):
         max_age=7 * 24 * 60 * 60
     )
     
-    # Get full user data
     user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
     
     return {"user": user, "session_token": session_token}
 
 @api_router.get("/auth/me")
 async def get_me(user: dict = Depends(get_current_user)):
-    """Get current authenticated user"""
     return user
 
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response):
-    """Logout and clear session"""
     session_token = request.cookies.get("session_token")
     if session_token:
         await db.user_sessions.delete_one({"session_token": session_token})
@@ -339,16 +577,79 @@ async def logout(request: Request, response: Response):
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out"}
 
+# ============== WEBSOCKET ENDPOINT ==============
+
+@app.websocket("/ws/{token}")
+async def websocket_endpoint(websocket: WebSocket, token: str):
+    user = await get_user_from_token(token)
+    if not user:
+        await websocket.close(code=4001)
+        return
+    
+    user_id = user["user_id"]
+    await manager.connect(websocket, user_id)
+    
+    # Join user's lobby if they have one
+    if user.get("current_lobby"):
+        manager.join_lobby(user_id, user["current_lobby"])
+    
+    try:
+        while True:
+            data = await websocket.receive_json()
+            msg_type = data.get("type")
+            
+            if msg_type == "location_update":
+                # Broadcast location to lobby members
+                if user.get("current_lobby"):
+                    await manager.broadcast_to_lobby(
+                        user["current_lobby"],
+                        {
+                            "type": "user_location",
+                            "user_id": user_id,
+                            "location": data.get("location"),
+                            "speed": data.get("speed", 0)
+                        },
+                        exclude_user=user_id
+                    )
+            
+            elif msg_type == "chat_message":
+                # Handle squad chat
+                squad_id = data.get("squad_id")
+                if squad_id:
+                    squad = await db.squads.find_one({"squad_id": squad_id}, {"_id": 0})
+                    if squad and user_id in squad.get("members", []):
+                        msg = {
+                            "message_id": f"msg_{uuid.uuid4().hex[:12]}",
+                            "squad_id": squad_id,
+                            "user_id": user_id,
+                            "user_name": user.get("name"),
+                            "user_picture": user.get("picture"),
+                            "content": data.get("content"),
+                            "message_type": data.get("message_type", "text"),
+                            "created_at": datetime.now(timezone.utc).isoformat()
+                        }
+                        await db.chat_messages.insert_one(msg)
+                        await manager.broadcast_to_squad(
+                            squad["members"],
+                            {"type": "chat_message", "message": {k: v for k, v in msg.items() if k != "_id"}}
+                        )
+            
+            elif msg_type == "ping":
+                await websocket.send_json({"type": "pong"})
+                
+    except WebSocketDisconnect:
+        manager.disconnect(user_id)
+        if user.get("current_lobby"):
+            manager.leave_lobby(user_id, user["current_lobby"])
+
 # ============== USER ENDPOINTS ==============
 
 @api_router.get("/users/me")
 async def get_current_user_profile(user: dict = Depends(get_current_user)):
-    """Get current user profile"""
     return user
 
 @api_router.put("/users/me")
 async def update_user_profile(update: UserUpdate, user: dict = Depends(get_current_user)):
-    """Update current user profile"""
     update_data = {k: v for k, v in update.model_dump().items() if v is not None}
     if update_data:
         await db.users.update_one({"user_id": user["user_id"]}, {"$set": update_data})
@@ -358,38 +659,88 @@ async def update_user_profile(update: UserUpdate, user: dict = Depends(get_curre
 
 @api_router.get("/users/{user_id}")
 async def get_user_profile(user_id: str, current_user: dict = Depends(get_current_user)):
-    """Get a specific user's public profile"""
     user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "email": 0})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+# ============== NOTIFICATION ENDPOINTS ==============
+
+@api_router.get("/notifications")
+async def get_notifications(user: dict = Depends(get_current_user)):
+    notifications = await db.notifications.find(
+        {"user_id": user["user_id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(50).to_list(50)
+    return notifications
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, user: dict = Depends(get_current_user)):
+    await db.notifications.update_one(
+        {"notification_id": notification_id, "user_id": user["user_id"]},
+        {"$set": {"is_read": True}}
+    )
+    return {"message": "Marked as read"}
+
+@api_router.put("/notifications/read-all")
+async def mark_all_notifications_read(user: dict = Depends(get_current_user)):
+    await db.notifications.update_many(
+        {"user_id": user["user_id"]},
+        {"$set": {"is_read": True}}
+    )
+    return {"message": "All notifications marked as read"}
+
+@api_router.get("/notifications/unread-count")
+async def get_unread_count(user: dict = Depends(get_current_user)):
+    count = await db.notifications.count_documents({
+        "user_id": user["user_id"],
+        "is_read": False
+    })
+    return {"count": count}
+
+# ============== ACHIEVEMENT ENDPOINTS ==============
+
+@api_router.get("/achievements")
+async def get_all_achievements():
+    return ACHIEVEMENTS
+
+@api_router.get("/achievements/me")
+async def get_my_achievements(user: dict = Depends(get_current_user)):
+    user_achievements = user.get("achievements", [])
+    return {
+        "earned": [{"id": a, **ACHIEVEMENTS[a]} for a in user_achievements if a in ACHIEVEMENTS],
+        "available": [{"id": k, **v} for k, v in ACHIEVEMENTS.items() if k not in user_achievements]
+    }
+
 # ============== LOCATION & SPEEDOMETER ENDPOINTS ==============
 
 @api_router.post("/location/update")
 async def update_location(location: LocationUpdate, user: dict = Depends(get_current_user)):
-    """Update user's current location and speed"""
     now = datetime.now(timezone.utc)
     
-    # Get previous location for distance calculation
     prev_location = user.get("location")
     trip_stats = user.get("trip_stats", {
         "top_speed": 0,
         "total_distance": 0,
         "avg_speed": 0,
         "trip_start": None,
-        "speed_readings": []
+        "all_time_distance": 0,
+        "all_time_top_speed": 0
     })
     
     # Update top speed
     if location.speed and location.speed > trip_stats.get("top_speed", 0):
         trip_stats["top_speed"] = location.speed
     
-    # Calculate distance if we have previous location
+    # Update all-time top speed
+    if location.speed and location.speed > trip_stats.get("all_time_top_speed", 0):
+        trip_stats["all_time_top_speed"] = location.speed
+    
+    # Calculate distance
     if prev_location and prev_location.get("lat") and prev_location.get("lng"):
         from math import radians, sin, cos, sqrt, atan2
         
-        R = 3959  # Earth's radius in miles
+        R = 3959
         lat1, lon1 = radians(prev_location["lat"]), radians(prev_location["lng"])
         lat2, lon2 = radians(location.lat), radians(location.lng)
         
@@ -401,12 +752,11 @@ async def update_location(location: LocationUpdate, user: dict = Depends(get_cur
         distance = R * c
         
         trip_stats["total_distance"] = trip_stats.get("total_distance", 0) + distance
+        trip_stats["all_time_distance"] = trip_stats.get("all_time_distance", 0) + distance
     
-    # Start trip timer if not started
     if not trip_stats.get("trip_start"):
         trip_stats["trip_start"] = now.isoformat()
     
-    # Calculate average speed
     if trip_stats.get("trip_start"):
         trip_start = datetime.fromisoformat(trip_stats["trip_start"].replace("Z", "+00:00"))
         if trip_start.tzinfo is None:
@@ -431,6 +781,22 @@ async def update_location(location: LocationUpdate, user: dict = Depends(get_cur
         }}
     )
     
+    # Check achievements
+    await check_achievements(user["user_id"])
+    
+    # Broadcast to lobby via WebSocket
+    if user.get("current_lobby"):
+        await manager.broadcast_to_lobby(
+            user["current_lobby"],
+            {
+                "type": "user_location",
+                "user_id": user["user_id"],
+                "location": location_data,
+                "speed": location.speed or 0
+            },
+            exclude_user=user["user_id"]
+        )
+    
     return {
         "message": "Location updated",
         "location": location_data,
@@ -439,12 +805,14 @@ async def update_location(location: LocationUpdate, user: dict = Depends(get_cur
 
 @api_router.post("/location/reset-trip")
 async def reset_trip(user: dict = Depends(get_current_user)):
-    """Reset trip statistics"""
+    current_stats = user.get("trip_stats", {})
     trip_stats = {
         "top_speed": 0,
         "total_distance": 0,
         "avg_speed": 0,
-        "trip_start": datetime.now(timezone.utc).isoformat()
+        "trip_start": datetime.now(timezone.utc).isoformat(),
+        "all_time_distance": current_stats.get("all_time_distance", 0),
+        "all_time_top_speed": current_stats.get("all_time_top_speed", 0)
     }
     
     await db.users.update_one(
@@ -454,11 +822,76 @@ async def reset_trip(user: dict = Depends(get_current_user)):
     
     return {"message": "Trip reset", "trip_stats": trip_stats}
 
-# ============== MUSIC/SPOTIFY ENDPOINTS ==============
+# ============== LEADERBOARD ENDPOINTS ==============
+
+@api_router.get("/leaderboards/speed")
+async def get_speed_leaderboard(user: dict = Depends(get_current_user)):
+    """Get top speed leaderboard"""
+    users = await db.users.find(
+        {"trip_stats.all_time_top_speed": {"$gt": 0}},
+        {"_id": 0, "user_id": 1, "name": 1, "picture": 1, "trip_stats.all_time_top_speed": 1}
+    ).sort("trip_stats.all_time_top_speed", -1).limit(50).to_list(50)
+    
+    leaderboard = []
+    for i, u in enumerate(users):
+        leaderboard.append({
+            "rank": i + 1,
+            "user_id": u["user_id"],
+            "name": u["name"],
+            "picture": u.get("picture"),
+            "top_speed": u.get("trip_stats", {}).get("all_time_top_speed", 0)
+        })
+    
+    return leaderboard
+
+@api_router.get("/leaderboards/distance")
+async def get_distance_leaderboard(user: dict = Depends(get_current_user)):
+    """Get total distance leaderboard"""
+    users = await db.users.find(
+        {"trip_stats.all_time_distance": {"$gt": 0}},
+        {"_id": 0, "user_id": 1, "name": 1, "picture": 1, "trip_stats.all_time_distance": 1}
+    ).sort("trip_stats.all_time_distance", -1).limit(50).to_list(50)
+    
+    leaderboard = []
+    for i, u in enumerate(users):
+        leaderboard.append({
+            "rank": i + 1,
+            "user_id": u["user_id"],
+            "name": u["name"],
+            "picture": u.get("picture"),
+            "distance": u.get("trip_stats", {}).get("all_time_distance", 0)
+        })
+    
+    return leaderboard
+
+@api_router.get("/leaderboards/garage")
+async def get_garage_leaderboard(user: dict = Depends(get_current_user)):
+    """Get biggest garage leaderboard"""
+    pipeline = [
+        {"$group": {"_id": "$user_id", "car_count": {"$sum": 1}}},
+        {"$sort": {"car_count": -1}},
+        {"$limit": 50}
+    ]
+    results = await db.cars.aggregate(pipeline).to_list(50)
+    
+    leaderboard = []
+    for i, r in enumerate(results):
+        user_data = await db.users.find_one({"user_id": r["_id"]}, {"_id": 0, "name": 1, "picture": 1})
+        if user_data:
+            leaderboard.append({
+                "rank": i + 1,
+                "user_id": r["_id"],
+                "name": user_data.get("name", "Unknown"),
+                "picture": user_data.get("picture"),
+                "car_count": r["car_count"]
+            })
+    
+    return leaderboard
+
+# ============== MUSIC ENDPOINTS ==============
 
 @api_router.post("/music/update")
 async def update_current_song(song: SpotifySongUpdate, user: dict = Depends(get_current_user)):
-    """Update user's currently playing song"""
     song_data = {
         "name": song.name,
         "artist": song.artist,
@@ -475,7 +908,6 @@ async def update_current_song(song: SpotifySongUpdate, user: dict = Depends(get_
 
 @api_router.delete("/music/clear")
 async def clear_current_song(user: dict = Depends(get_current_user)):
-    """Clear user's currently playing song"""
     await db.users.update_one(
         {"user_id": user["user_id"]},
         {"$set": {"current_song": None}}
@@ -487,17 +919,14 @@ async def clear_current_song(user: dict = Depends(get_current_user)):
 
 @api_router.get("/lobbies")
 async def get_lobbies():
-    """Get all active lobbies"""
     lobbies = await db.lobbies.find({}, {"_id": 0}).to_list(100)
     return lobbies
 
 @api_router.post("/lobbies/join")
 async def join_lobby(lobby_data: LobbyJoin, user: dict = Depends(get_current_user)):
-    """Join a city lobby"""
     city = lobby_data.city.strip().title()
     state = lobby_data.state.strip().upper()
     
-    # Find or create lobby
     lobby = await db.lobbies.find_one({"city": city, "state": state}, {"_id": 0})
     
     if not lobby:
@@ -511,12 +940,13 @@ async def join_lobby(lobby_data: LobbyJoin, user: dict = Depends(get_current_use
         }
         await db.lobbies.insert_one(lobby)
     
-    # Leave current lobby if any
+    # Leave current lobby
     if user.get("current_lobby"):
         await db.lobbies.update_one(
             {"lobby_id": user["current_lobby"]},
             {"$inc": {"member_count": -1}}
         )
+        manager.leave_lobby(user["user_id"], user["current_lobby"])
     
     # Join new lobby
     await db.lobbies.update_one(
@@ -529,19 +959,20 @@ async def join_lobby(lobby_data: LobbyJoin, user: dict = Depends(get_current_use
         {"$set": {"current_lobby": lobby["lobby_id"]}}
     )
     
-    # Get updated lobby
+    manager.join_lobby(user["user_id"], lobby["lobby_id"])
+    
     updated_lobby = await db.lobbies.find_one({"lobby_id": lobby["lobby_id"]}, {"_id": 0})
     
     return {"message": f"Joined {city}, {state}", "lobby": updated_lobby}
 
 @api_router.post("/lobbies/leave")
 async def leave_lobby(user: dict = Depends(get_current_user)):
-    """Leave current lobby"""
     if user.get("current_lobby"):
         await db.lobbies.update_one(
             {"lobby_id": user["current_lobby"]},
             {"$inc": {"member_count": -1}}
         )
+        manager.leave_lobby(user["user_id"], user["current_lobby"])
         
         await db.users.update_one(
             {"user_id": user["user_id"]},
@@ -552,7 +983,6 @@ async def leave_lobby(user: dict = Depends(get_current_user)):
 
 @api_router.get("/lobbies/{lobby_id}/users")
 async def get_lobby_users(lobby_id: str, user: dict = Depends(get_current_user)):
-    """Get all users in a lobby with their locations"""
     users = await db.users.find(
         {"current_lobby": lobby_id},
         {"_id": 0, "email": 0, "spotify_access_token": 0, "spotify_refresh_token": 0}
@@ -564,16 +994,14 @@ async def get_lobby_users(lobby_id: str, user: dict = Depends(get_current_user))
 
 @api_router.get("/squads")
 async def get_user_squad(user: dict = Depends(get_current_user)):
-    """Get current user's squad"""
     if not user.get("current_squad"):
         return None
     
     squad = await db.squads.find_one({"squad_id": user["current_squad"]}, {"_id": 0})
     if squad:
-        # Get member details
         members = await db.users.find(
             {"user_id": {"$in": squad["members"]}},
-            {"_id": 0, "user_id": 1, "name": 1, "picture": 1, "avatar_url": 1}
+            {"_id": 0, "user_id": 1, "name": 1, "picture": 1, "avatar_url": 1, "location": 1}
         ).to_list(8)
         squad["member_details"] = members
     
@@ -581,21 +1009,16 @@ async def get_user_squad(user: dict = Depends(get_current_user)):
 
 @api_router.post("/squads/create")
 async def create_squad(squad_data: SquadCreate, payment_id: str, user: dict = Depends(get_current_user)):
-    """Create a new squad (requires $5 payment)"""
-    # Validate tag
     if len(squad_data.tag) < 2 or len(squad_data.tag) > 4:
         raise HTTPException(status_code=400, detail="Tag must be 2-4 characters")
     
-    # Check if user already owns a squad
     existing = await db.squads.find_one({"owner_id": user["user_id"], "is_active": True})
     if existing:
         raise HTTPException(status_code=400, detail="You already own a squad")
     
-    # Check if user is in a squad
     if user.get("current_squad"):
         raise HTTPException(status_code=400, detail="Leave your current squad first")
     
-    # Create squad
     squad = {
         "squad_id": f"squad_{uuid.uuid4().hex[:12]}",
         "name": squad_data.name,
@@ -611,17 +1034,18 @@ async def create_squad(squad_data: SquadCreate, payment_id: str, user: dict = De
     
     await db.squads.insert_one(squad)
     
-    # Update user
     await db.users.update_one(
         {"user_id": user["user_id"]},
         {"$set": {"current_squad": squad["squad_id"]}}
     )
     
+    # Grant achievement
+    await grant_achievement(user["user_id"], "squad_leader")
+    
     return {"message": "Squad created!", "squad": {k: v for k, v in squad.items() if k != "_id"}}
 
 @api_router.post("/squads/{squad_id}/invite")
 async def invite_to_squad(squad_id: str, to_user_id: str, user: dict = Depends(get_current_user)):
-    """Invite a user to your squad"""
     squad = await db.squads.find_one({"squad_id": squad_id}, {"_id": 0})
     if not squad:
         raise HTTPException(status_code=404, detail="Squad not found")
@@ -635,7 +1059,6 @@ async def invite_to_squad(squad_id: str, to_user_id: str, user: dict = Depends(g
     if to_user_id in squad["members"]:
         raise HTTPException(status_code=400, detail="User already in squad")
     
-    # Check if invite already exists
     existing = await db.squad_invites.find_one({
         "squad_id": squad_id,
         "to_user_id": to_user_id,
@@ -655,17 +1078,34 @@ async def invite_to_squad(squad_id: str, to_user_id: str, user: dict = Depends(g
     
     await db.squad_invites.insert_one(invite)
     
+    # Create notification
+    notification = {
+        "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
+        "user_id": to_user_id,
+        "type": "squad_invite",
+        "title": "Squad Invite",
+        "message": f"{user['name']} invited you to join [{squad['tag']}] {squad['name']}",
+        "data": {"invite_id": invite["invite_id"], "squad_id": squad_id},
+        "is_read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.notifications.insert_one(notification)
+    
+    # Send real-time notification
+    await manager.send_personal(to_user_id, {
+        "type": "notification",
+        "notification": {k: v for k, v in notification.items() if k != "_id"}
+    })
+    
     return {"message": "Invite sent", "invite": {k: v for k, v in invite.items() if k != "_id"}}
 
 @api_router.get("/squads/invites")
 async def get_squad_invites(user: dict = Depends(get_current_user)):
-    """Get pending squad invites for current user"""
     invites = await db.squad_invites.find(
         {"to_user_id": user["user_id"], "status": "pending"},
         {"_id": 0}
     ).to_list(50)
     
-    # Enrich with squad info
     for invite in invites:
         squad = await db.squads.find_one({"squad_id": invite["squad_id"]}, {"_id": 0})
         invite["squad"] = squad
@@ -674,7 +1114,6 @@ async def get_squad_invites(user: dict = Depends(get_current_user)):
 
 @api_router.put("/squads/invites/{invite_id}")
 async def respond_to_squad_invite(invite_id: str, accept: bool, user: dict = Depends(get_current_user)):
-    """Accept or decline a squad invite"""
     invite = await db.squad_invites.find_one(
         {"invite_id": invite_id, "to_user_id": user["user_id"]},
         {"_id": 0}
@@ -691,14 +1130,12 @@ async def respond_to_squad_invite(invite_id: str, accept: bool, user: dict = Dep
         if len(squad["members"]) >= 8:
             raise HTTPException(status_code=400, detail="Squad is full")
         
-        # Leave current squad if any
         if user.get("current_squad"):
             await db.squads.update_one(
                 {"squad_id": user["current_squad"]},
                 {"$pull": {"members": user["user_id"]}}
             )
         
-        # Join new squad
         await db.squads.update_one(
             {"squad_id": invite["squad_id"]},
             {"$push": {"members": user["user_id"]}}
@@ -708,8 +1145,12 @@ async def respond_to_squad_invite(invite_id: str, accept: bool, user: dict = Dep
             {"user_id": user["user_id"]},
             {"$set": {"current_squad": invite["squad_id"]}}
         )
+        
+        # Check if squad is full
+        updated_squad = await db.squads.find_one({"squad_id": invite["squad_id"]}, {"_id": 0})
+        if len(updated_squad.get("members", [])) >= 8:
+            await grant_achievement(updated_squad["owner_id"], "squad_full")
     
-    # Update invite status
     await db.squad_invites.update_one(
         {"invite_id": invite_id},
         {"$set": {"status": "accepted" if accept else "declined"}}
@@ -719,14 +1160,12 @@ async def respond_to_squad_invite(invite_id: str, accept: bool, user: dict = Dep
 
 @api_router.post("/squads/leave")
 async def leave_squad(user: dict = Depends(get_current_user)):
-    """Leave current squad"""
     if not user.get("current_squad"):
         raise HTTPException(status_code=400, detail="Not in a squad")
     
     squad = await db.squads.find_one({"squad_id": user["current_squad"]}, {"_id": 0})
     
     if squad and squad["owner_id"] == user["user_id"]:
-        # Transfer ownership or disband
         remaining = [m for m in squad["members"] if m != user["user_id"]]
         if remaining:
             await db.squads.update_one(
@@ -754,9 +1193,347 @@ async def leave_squad(user: dict = Depends(get_current_user)):
     
     return {"message": "Left squad"}
 
+# ============== SQUAD CHAT ENDPOINTS ==============
+
+@api_router.get("/squads/{squad_id}/messages")
+async def get_squad_messages(squad_id: str, limit: int = 50, user: dict = Depends(get_current_user)):
+    """Get chat messages for a squad"""
+    squad = await db.squads.find_one({"squad_id": squad_id}, {"_id": 0})
+    if not squad or user["user_id"] not in squad.get("members", []):
+        raise HTTPException(status_code=403, detail="Not a member of this squad")
+    
+    messages = await db.chat_messages.find(
+        {"squad_id": squad_id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    # Reverse to get chronological order
+    messages.reverse()
+    
+    # Enrich with user info
+    for msg in messages:
+        msg_user = await db.users.find_one({"user_id": msg["user_id"]}, {"_id": 0, "name": 1, "picture": 1})
+        if msg_user:
+            msg["user_name"] = msg_user.get("name")
+            msg["user_picture"] = msg_user.get("picture")
+    
+    return messages
+
+@api_router.post("/squads/{squad_id}/messages")
+async def send_squad_message(squad_id: str, message: ChatMessageCreate, user: dict = Depends(get_current_user)):
+    """Send a message to squad chat"""
+    squad = await db.squads.find_one({"squad_id": squad_id}, {"_id": 0})
+    if not squad or user["user_id"] not in squad.get("members", []):
+        raise HTTPException(status_code=403, detail="Not a member of this squad")
+    
+    msg = {
+        "message_id": f"msg_{uuid.uuid4().hex[:12]}",
+        "squad_id": squad_id,
+        "user_id": user["user_id"],
+        "content": message.content,
+        "message_type": message.message_type,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.chat_messages.insert_one(msg)
+    
+    # Broadcast to squad members via WebSocket
+    await manager.broadcast_to_squad(
+        squad["members"],
+        {
+            "type": "chat_message",
+            "message": {
+                **{k: v for k, v in msg.items() if k != "_id"},
+                "user_name": user.get("name"),
+                "user_picture": user.get("picture")
+            }
+        }
+    )
+    
+    return {k: v for k, v in msg.items() if k != "_id"}
+
+# ============== CAR MEET/EVENT ENDPOINTS ==============
+
+@api_router.get("/meets")
+async def get_car_meets(lobby_id: Optional[str] = None, user: dict = Depends(get_current_user)):
+    """Get upcoming car meets"""
+    query = {
+        "is_cancelled": False,
+        "start_time": {"$gte": datetime.now(timezone.utc).isoformat()}
+    }
+    
+    if lobby_id:
+        query["lobby_id"] = lobby_id
+    
+    meets = await db.car_meets.find(query, {"_id": 0}).sort("start_time", 1).limit(50).to_list(50)
+    
+    # Enrich with host info
+    for meet in meets:
+        host = await db.users.find_one({"user_id": meet["host_id"]}, {"_id": 0, "name": 1, "picture": 1})
+        meet["host"] = host
+        meet["attendee_count"] = len(meet.get("attendees", []))
+        meet["interested_count"] = len(meet.get("interested", []))
+        meet["is_attending"] = user["user_id"] in meet.get("attendees", [])
+        meet["is_interested"] = user["user_id"] in meet.get("interested", [])
+    
+    return meets
+
+@api_router.post("/meets")
+async def create_car_meet(meet: CarMeetCreate, user: dict = Depends(get_current_user)):
+    """Create a new car meet"""
+    if not user.get("current_lobby"):
+        raise HTTPException(status_code=400, detail="Join a lobby first")
+    
+    meet_doc = {
+        "meet_id": f"meet_{uuid.uuid4().hex[:12]}",
+        "title": meet.title,
+        "description": meet.description,
+        "host_id": user["user_id"],
+        "lobby_id": user["current_lobby"],
+        "location": meet.location,
+        "start_time": meet.start_time.isoformat() if isinstance(meet.start_time, datetime) else meet.start_time,
+        "end_time": meet.end_time.isoformat() if meet.end_time and isinstance(meet.end_time, datetime) else meet.end_time,
+        "max_attendees": meet.max_attendees,
+        "attendees": [user["user_id"]],
+        "interested": [],
+        "tags": meet.tags,
+        "is_public": meet.is_public,
+        "is_cancelled": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.car_meets.insert_one(meet_doc)
+    
+    # Grant achievement
+    await grant_achievement(user["user_id"], "event_host")
+    
+    return {k: v for k, v in meet_doc.items() if k != "_id"}
+
+@api_router.get("/meets/{meet_id}")
+async def get_car_meet(meet_id: str, user: dict = Depends(get_current_user)):
+    """Get details of a specific car meet"""
+    meet = await db.car_meets.find_one({"meet_id": meet_id}, {"_id": 0})
+    if not meet:
+        raise HTTPException(status_code=404, detail="Meet not found")
+    
+    # Get host info
+    host = await db.users.find_one({"user_id": meet["host_id"]}, {"_id": 0, "name": 1, "picture": 1})
+    meet["host"] = host
+    
+    # Get attendee details
+    attendees = await db.users.find(
+        {"user_id": {"$in": meet.get("attendees", [])}},
+        {"_id": 0, "user_id": 1, "name": 1, "picture": 1}
+    ).to_list(100)
+    meet["attendee_details"] = attendees
+    
+    meet["is_attending"] = user["user_id"] in meet.get("attendees", [])
+    meet["is_interested"] = user["user_id"] in meet.get("interested", [])
+    
+    return meet
+
+@api_router.post("/meets/{meet_id}/attend")
+async def attend_car_meet(meet_id: str, user: dict = Depends(get_current_user)):
+    """RSVP to attend a car meet"""
+    meet = await db.car_meets.find_one({"meet_id": meet_id}, {"_id": 0})
+    if not meet:
+        raise HTTPException(status_code=404, detail="Meet not found")
+    
+    if user["user_id"] in meet.get("attendees", []):
+        raise HTTPException(status_code=400, detail="Already attending")
+    
+    if meet.get("max_attendees") and len(meet.get("attendees", [])) >= meet["max_attendees"]:
+        raise HTTPException(status_code=400, detail="Meet is full")
+    
+    await db.car_meets.update_one(
+        {"meet_id": meet_id},
+        {
+            "$push": {"attendees": user["user_id"]},
+            "$pull": {"interested": user["user_id"]}
+        }
+    )
+    
+    # Check if host gets achievement for 10+ attendees
+    updated_meet = await db.car_meets.find_one({"meet_id": meet_id}, {"_id": 0})
+    if len(updated_meet.get("attendees", [])) >= 10:
+        await grant_achievement(updated_meet["host_id"], "popular_host")
+    
+    return {"message": "You're attending!"}
+
+@api_router.post("/meets/{meet_id}/interested")
+async def interested_car_meet(meet_id: str, user: dict = Depends(get_current_user)):
+    """Mark interest in a car meet"""
+    meet = await db.car_meets.find_one({"meet_id": meet_id}, {"_id": 0})
+    if not meet:
+        raise HTTPException(status_code=404, detail="Meet not found")
+    
+    if user["user_id"] in meet.get("attendees", []):
+        raise HTTPException(status_code=400, detail="Already attending")
+    
+    if user["user_id"] in meet.get("interested", []):
+        # Remove interest
+        await db.car_meets.update_one(
+            {"meet_id": meet_id},
+            {"$pull": {"interested": user["user_id"]}}
+        )
+        return {"message": "Removed interest"}
+    else:
+        await db.car_meets.update_one(
+            {"meet_id": meet_id},
+            {"$push": {"interested": user["user_id"]}}
+        )
+        return {"message": "Marked as interested"}
+
+@api_router.post("/meets/{meet_id}/leave")
+async def leave_car_meet(meet_id: str, user: dict = Depends(get_current_user)):
+    """Cancel attendance at a car meet"""
+    await db.car_meets.update_one(
+        {"meet_id": meet_id},
+        {"$pull": {"attendees": user["user_id"], "interested": user["user_id"]}}
+    )
+    return {"message": "Left meet"}
+
+@api_router.delete("/meets/{meet_id}")
+async def cancel_car_meet(meet_id: str, user: dict = Depends(get_current_user)):
+    """Cancel a car meet (host only)"""
+    meet = await db.car_meets.find_one({"meet_id": meet_id}, {"_id": 0})
+    if not meet:
+        raise HTTPException(status_code=404, detail="Meet not found")
+    
+    if meet["host_id"] != user["user_id"]:
+        raise HTTPException(status_code=403, detail="Only host can cancel")
+    
+    await db.car_meets.update_one(
+        {"meet_id": meet_id},
+        {"$set": {"is_cancelled": True}}
+    )
+    
+    # Notify attendees
+    for attendee_id in meet.get("attendees", []):
+        if attendee_id != user["user_id"]:
+            notification = {
+                "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
+                "user_id": attendee_id,
+                "type": "meet_cancelled",
+                "title": "Meet Cancelled",
+                "message": f"'{meet['title']}' has been cancelled by the host",
+                "data": {"meet_id": meet_id},
+                "is_read": False,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.notifications.insert_one(notification)
+            await manager.send_personal(attendee_id, {
+                "type": "notification",
+                "notification": {k: v for k, v in notification.items() if k != "_id"}
+            })
+    
+    return {"message": "Meet cancelled"}
+
+# ============== ROUTE TRACKING ENDPOINTS ==============
+
+@api_router.get("/routes")
+async def get_routes(user_id: Optional[str] = None, public_only: bool = True, user: dict = Depends(get_current_user)):
+    """Get saved routes"""
+    query = {}
+    
+    if user_id:
+        query["user_id"] = user_id
+        if user_id != user["user_id"] and public_only:
+            query["is_public"] = True
+    elif public_only:
+        query["is_public"] = True
+    
+    routes = await db.routes.find(query, {"_id": 0}).sort("created_at", -1).limit(50).to_list(50)
+    
+    # Enrich with user info
+    for route in routes:
+        route_user = await db.users.find_one({"user_id": route["user_id"]}, {"_id": 0, "name": 1, "picture": 1})
+        route["user"] = route_user
+        route["like_count"] = len(route.get("likes", []))
+        route["is_liked"] = user["user_id"] in route.get("likes", [])
+    
+    return routes
+
+@api_router.get("/routes/me")
+async def get_my_routes(user: dict = Depends(get_current_user)):
+    """Get current user's routes"""
+    routes = await db.routes.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return routes
+
+@api_router.post("/routes")
+async def save_route(route: RouteCreate, user: dict = Depends(get_current_user)):
+    """Save a new route"""
+    route_doc = {
+        "route_id": f"route_{uuid.uuid4().hex[:12]}",
+        "user_id": user["user_id"],
+        "name": route.name,
+        "description": route.description,
+        "waypoints": route.waypoints,
+        "distance": route.distance,
+        "duration": route.duration,
+        "top_speed": route.top_speed,
+        "avg_speed": route.avg_speed,
+        "start_location": route.waypoints[0] if route.waypoints else None,
+        "end_location": route.waypoints[-1] if route.waypoints else None,
+        "is_public": route.is_public,
+        "likes": [],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.routes.insert_one(route_doc)
+    
+    # Grant achievement
+    await grant_achievement(user["user_id"], "route_mapper")
+    
+    return {k: v for k, v in route_doc.items() if k != "_id"}
+
+@api_router.get("/routes/{route_id}")
+async def get_route(route_id: str, user: dict = Depends(get_current_user)):
+    """Get a specific route"""
+    route = await db.routes.find_one({"route_id": route_id}, {"_id": 0})
+    if not route:
+        raise HTTPException(status_code=404, detail="Route not found")
+    
+    if not route.get("is_public") and route["user_id"] != user["user_id"]:
+        raise HTTPException(status_code=403, detail="Route is private")
+    
+    route_user = await db.users.find_one({"user_id": route["user_id"]}, {"_id": 0, "name": 1, "picture": 1})
+    route["user"] = route_user
+    route["like_count"] = len(route.get("likes", []))
+    route["is_liked"] = user["user_id"] in route.get("likes", [])
+    
+    return route
+
+@api_router.post("/routes/{route_id}/like")
+async def like_route(route_id: str, user: dict = Depends(get_current_user)):
+    """Like or unlike a route"""
+    route = await db.routes.find_one({"route_id": route_id}, {"_id": 0})
+    if not route:
+        raise HTTPException(status_code=404, detail="Route not found")
+    
+    if user["user_id"] in route.get("likes", []):
+        await db.routes.update_one(
+            {"route_id": route_id},
+            {"$pull": {"likes": user["user_id"]}}
+        )
+        return {"message": "Unliked", "liked": False}
+    else:
+        await db.routes.update_one(
+            {"route_id": route_id},
+            {"$push": {"likes": user["user_id"]}}
+        )
+        return {"message": "Liked", "liked": True}
+
+@api_router.delete("/routes/{route_id}")
+async def delete_route(route_id: str, user: dict = Depends(get_current_user)):
+    """Delete a route"""
+    result = await db.routes.delete_one({"route_id": route_id, "user_id": user["user_id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Route not found")
+    return {"message": "Route deleted"}
+
 # ============== CAR/GARAGE ENDPOINTS ==============
 
-# Extended car data
 CAR_DATABASE = {
     'Nissan': ['GT-R R35', 'GT-R R34', 'GT-R R33', 'GT-R R32', '370Z', '350Z', 'Silvia S15', 'Silvia S14', 'Silvia S13', '240SX', 'Skyline', 'Fairlady Z', '300ZX'],
     'Toyota': ['Supra MK5', 'Supra MK4', 'Supra MK3', 'GR86', 'AE86 Trueno', 'AE86 Levin', 'Celica', 'MR2', 'Chaser', 'Soarer', 'Crown'],
@@ -793,31 +1570,26 @@ CAR_DATABASE = {
 
 @api_router.get("/cars/makes")
 async def get_car_makes():
-    """Get all available car makes"""
     return list(CAR_DATABASE.keys())
 
 @api_router.get("/cars/models/{make}")
 async def get_car_models(make: str):
-    """Get all models for a specific make"""
     if make not in CAR_DATABASE:
         raise HTTPException(status_code=404, detail="Make not found")
     return CAR_DATABASE[make]
 
 @api_router.get("/garage")
 async def get_my_garage(user: dict = Depends(get_current_user)):
-    """Get current user's garage"""
     cars = await db.cars.find({"user_id": user["user_id"]}, {"_id": 0}).to_list(50)
     return cars
 
 @api_router.get("/garage/{user_id}")
 async def get_user_garage(user_id: str, current_user: dict = Depends(get_current_user)):
-    """Get a user's garage"""
     cars = await db.cars.find({"user_id": user_id}, {"_id": 0}).to_list(50)
     return cars
 
 @api_router.post("/garage/cars")
 async def add_car(car: CarCreate, user: dict = Depends(get_current_user)):
-    """Add a car to garage"""
     car_doc = {
         "car_id": f"car_{uuid.uuid4().hex[:12]}",
         "user_id": user["user_id"],
@@ -841,10 +1613,11 @@ async def add_car(car: CarCreate, user: dict = Depends(get_current_user)):
         "weight": car.weight or 3000,
         "drivetrain": car.drivetrain or "RWD",
         "is_primary": car.is_primary,
+        "ratings": [],
+        "avg_rating": 0,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
-    # If this is primary, unset other primaries
     if car.is_primary:
         await db.cars.update_many(
             {"user_id": user["user_id"]},
@@ -853,11 +1626,13 @@ async def add_car(car: CarCreate, user: dict = Depends(get_current_user)):
     
     await db.cars.insert_one(car_doc)
     
+    # Check achievements
+    await check_achievements(user["user_id"])
+    
     return {k: v for k, v in car_doc.items() if k != "_id"}
 
 @api_router.put("/garage/cars/{car_id}")
 async def update_car(car_id: str, car_update: CarUpdate, user: dict = Depends(get_current_user)):
-    """Update a car in garage"""
     car = await db.cars.find_one({"car_id": car_id, "user_id": user["user_id"]}, {"_id": 0})
     if not car:
         raise HTTPException(status_code=404, detail="Car not found")
@@ -878,17 +1653,91 @@ async def update_car(car_id: str, car_update: CarUpdate, user: dict = Depends(ge
 
 @api_router.delete("/garage/cars/{car_id}")
 async def delete_car(car_id: str, user: dict = Depends(get_current_user)):
-    """Delete a car from garage"""
     result = await db.cars.delete_one({"car_id": car_id, "user_id": user["user_id"]})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Car not found")
     return {"message": "Car deleted"}
 
+# ============== CAR RATING ENDPOINTS ==============
+
+@api_router.post("/garage/cars/{car_id}/rate")
+async def rate_car(car_id: str, rating: CarRating, user: dict = Depends(get_current_user)):
+    """Rate someone's car (1-5 stars)"""
+    car = await db.cars.find_one({"car_id": car_id}, {"_id": 0})
+    if not car:
+        raise HTTPException(status_code=404, detail="Car not found")
+    
+    if car["user_id"] == user["user_id"]:
+        raise HTTPException(status_code=400, detail="Cannot rate your own car")
+    
+    if rating.rating < 1 or rating.rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be 1-5")
+    
+    # Check if user already rated this car
+    existing_ratings = car.get("ratings", [])
+    existing_rating = next((r for r in existing_ratings if r["user_id"] == user["user_id"]), None)
+    
+    new_rating = {
+        "user_id": user["user_id"],
+        "rating": rating.rating,
+        "comment": rating.comment,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if existing_rating:
+        # Update existing rating
+        await db.cars.update_one(
+            {"car_id": car_id, "ratings.user_id": user["user_id"]},
+            {"$set": {"ratings.$": new_rating}}
+        )
+    else:
+        # Add new rating
+        await db.cars.update_one(
+            {"car_id": car_id},
+            {"$push": {"ratings": new_rating}}
+        )
+    
+    # Recalculate average
+    updated_car = await db.cars.find_one({"car_id": car_id}, {"_id": 0})
+    ratings = updated_car.get("ratings", [])
+    if ratings:
+        avg = sum(r["rating"] for r in ratings) / len(ratings)
+        await db.cars.update_one(
+            {"car_id": car_id},
+            {"$set": {"avg_rating": round(avg, 1)}}
+        )
+        
+        # Grant achievements
+        await grant_achievement(car["user_id"], "rated_ride")
+        if avg >= 5:
+            await grant_achievement(car["user_id"], "top_rated")
+    
+    return {"message": "Rating submitted", "avg_rating": round(avg, 1) if ratings else 0}
+
+@api_router.get("/garage/cars/{car_id}/ratings")
+async def get_car_ratings(car_id: str, user: dict = Depends(get_current_user)):
+    """Get all ratings for a car"""
+    car = await db.cars.find_one({"car_id": car_id}, {"_id": 0})
+    if not car:
+        raise HTTPException(status_code=404, detail="Car not found")
+    
+    ratings = car.get("ratings", [])
+    
+    # Enrich with user info
+    for rating in ratings:
+        rating_user = await db.users.find_one({"user_id": rating["user_id"]}, {"_id": 0, "name": 1, "picture": 1})
+        rating["user"] = rating_user
+    
+    return {
+        "ratings": ratings,
+        "avg_rating": car.get("avg_rating", 0),
+        "total_ratings": len(ratings)
+    }
+
 # ============== JOIN REQUEST ENDPOINTS ==============
 
 @api_router.post("/requests")
 async def create_join_request(req: JoinRequestCreate, user: dict = Depends(get_current_user)):
-    """Send a join request to another user"""
     if req.to_user_id == user["user_id"]:
         raise HTTPException(status_code=400, detail="Cannot send request to yourself")
     
@@ -916,11 +1765,29 @@ async def create_join_request(req: JoinRequestCreate, user: dict = Depends(get_c
     
     await db.join_requests.insert_one(request_doc)
     
+    # Create notification
+    notification = {
+        "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
+        "user_id": req.to_user_id,
+        "type": "request",
+        "title": "New Connection Request",
+        "message": f"{user['name']} wants to connect with you",
+        "data": {"request_id": request_doc["request_id"], "from_user_id": user["user_id"]},
+        "is_read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.notifications.insert_one(notification)
+    
+    # Send real-time notification
+    await manager.send_personal(req.to_user_id, {
+        "type": "notification",
+        "notification": {k: v for k, v in notification.items() if k != "_id"}
+    })
+    
     return {k: v for k, v in request_doc.items() if k != "_id"}
 
 @api_router.get("/requests/incoming")
 async def get_incoming_requests(user: dict = Depends(get_current_user)):
-    """Get incoming join requests"""
     requests = await db.join_requests.find(
         {"to_user_id": user["user_id"], "status": "pending"},
         {"_id": 0}
@@ -934,7 +1801,6 @@ async def get_incoming_requests(user: dict = Depends(get_current_user)):
 
 @api_router.get("/requests/outgoing")
 async def get_outgoing_requests(user: dict = Depends(get_current_user)):
-    """Get outgoing join requests"""
     requests = await db.join_requests.find(
         {"from_user_id": user["user_id"]},
         {"_id": 0}
@@ -944,7 +1810,6 @@ async def get_outgoing_requests(user: dict = Depends(get_current_user)):
 
 @api_router.put("/requests/{request_id}")
 async def respond_to_request(request_id: str, response: dict, user: dict = Depends(get_current_user)):
-    """Accept or decline a join request"""
     status = response.get("status")
     if status not in ["accepted", "declined"]:
         raise HTTPException(status_code=400, detail="Status must be 'accepted' or 'declined'")
@@ -962,13 +1827,23 @@ async def respond_to_request(request_id: str, response: dict, user: dict = Depen
         {"$set": {"status": status}}
     )
     
+    # Check social achievement
+    if status == "accepted":
+        accepted_count = await db.join_requests.count_documents({
+            "$or": [
+                {"from_user_id": user["user_id"], "status": "accepted"},
+                {"to_user_id": user["user_id"], "status": "accepted"}
+            ]
+        })
+        if accepted_count >= 10:
+            await grant_achievement(user["user_id"], "social_butterfly")
+    
     return {"message": f"Request {status}"}
 
 # ============== DISCOVERY ==============
 
 @api_router.get("/discover")
 async def discover_users(user: dict = Depends(get_current_user)):
-    """Discover nearby users in the same lobby"""
     if not user.get("current_lobby"):
         return []
     
@@ -996,7 +1871,7 @@ async def discover_users(user: dict = Depends(get_current_user)):
 
 @api_router.get("/")
 async def root():
-    return {"message": "Forza Community API", "version": "2.0.0"}
+    return {"message": "Forza Community API", "version": "3.0.0"}
 
 # Include the router in the main app
 app.include_router(api_router)
