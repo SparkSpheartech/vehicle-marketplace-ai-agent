@@ -787,6 +787,8 @@ CAR_DATABASE = {
     'Maserati': ['MC20', 'GranTurismo', 'Quattroporte', 'Levante Trofeo'],
     'Rolls-Royce': ['Wraith', 'Dawn', 'Ghost', 'Cullinan Black Badge'],
     'Bentley': ['Continental GT', 'Continental GT3-R', 'Flying Spur', 'Bentayga Speed'],
+    'Lotus': ['Elise', 'Exige', 'Evora GT', 'Emira', 'Evija'],
+    'Tesla': ['Model S Plaid', 'Model 3 Performance', 'Roadster', 'Cybertruck'],
 }
 
 @api_router.get("/cars/makes")
