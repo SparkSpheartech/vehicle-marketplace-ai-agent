@@ -1,34 +1,131 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Racing stripe decoration */
+.racing-stripe {
+  background: linear-gradient(135deg, #22c55e 0%, #06b6d4 100%);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Void gradient fade */
+.void-fade {
+  background: linear-gradient(to bottom, rgba(9,9,11,0) 0%, #09090b 100%);
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+/* Hero section background */
+.hero-bg {
+  position: relative;
+  overflow: hidden;
 }
 
-.App-link {
-    color: #61dafb;
+.hero-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 0%, #09090b 100%);
+  z-index: 1;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Map controls panel */
+.map-panel {
+  position: absolute;
+  z-index: 1000;
+}
+
+/* User marker on map */
+.user-marker {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid #22c55e;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+  overflow: hidden;
+}
+
+.user-marker img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Car stats bar */
+.stat-bar {
+  height: 4px;
+  background: #27272a;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #06b6d4);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Garage grid */
+.garage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Lobby list item */
+.lobby-item {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.lobby-item:hover {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+/* Request card */
+.request-card {
+  border-left: 3px solid #22c55e;
+}
+
+/* Avatar customizer color picker */
+.color-option {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+}
+
+.color-option.selected {
+  box-shadow: 0 0 0 2px #09090b, 0 0 0 4px #22c55e;
+}
+
+/* Loading spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #27272a;
+  border-top-color: #22c55e;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Notification badge */
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  background: #ef4444;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
