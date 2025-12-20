@@ -1,0 +1,166 @@
+{
+  "identity": {
+    "name": "E1",
+    "role": "Creative Designer (Top 1%)",
+    "principles": [
+      "Fusion over Imitation: Mix Racing Game UI (NFS/Forza) with Social App Utility",
+      "Emotion First: Every pixel must scream 'Speed' and 'Community'",
+      "Content is King: The Cars and The Map are the heroes",
+      "Zoom In: High-fidelity details on car customization",
+      "Negative Space: Don't clutter the map; use collapsible panels",
+      "Contrast: Neon on Void Black"
+    ],
+    "anti_patterns": [
+      "Purple/Teal generic SaaS gradients",
+      "Inter font for headings (Use Unbounded)",
+      "Center-everything layouts",
+      "Default Bootstrap/MUI look"
+    ]
+  },
+  "typography": {
+    "primary_font": "Unbounded",
+    "secondary_font": "Chivo",
+    "mono_font": "JetBrains Mono",
+    "usage": {
+      "headings": "font-unbounded font-black tracking-tighter uppercase",
+      "body": "font-chivo text-zinc-300 leading-relaxed",
+      "ui_labels": "font-mono text-xs tracking-widest uppercase text-zinc-500",
+      "hero": "text-6xl md:text-8xl font-black italic"
+    },
+    "installation": "Import from Google Fonts: https://fonts.googleapis.com/css2?family=Chivo:ital,wght@0,100..900;1,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Unbounded:wght@200..900&display=swap"
+  },
+  "colors": {
+    "archetype": "Electric & Neon (Archetype 2)",
+    "palette": {
+      "background": "#09090b",
+      "foreground": "#fafafa",
+      "card": "#18181b",
+      "card_foreground": "#fafafa",
+      "popover": "#09090b",
+      "popover_foreground": "#fafafa",
+      "primary": "#22c55e",
+      "primary_foreground": "#000000",
+      "secondary": "#27272a",
+      "secondary_foreground": "#fafafa",
+      "muted": "#27272a",
+      "muted_foreground": "#a1a1aa",
+      "accent": "#06b6d4",
+      "accent_foreground": "#000000",
+      "destructive": "#ef4444",
+      "destructive_foreground": "#fafafa",
+      "border": "#27272a",
+      "input": "#27272a",
+      "ring": "#22c55e"
+    },
+    "gradients": {
+      "racing_stripe": "linear-gradient(135deg, #22c55e 0%, #06b6d4 100%)",
+      "void_fade": "linear-gradient(to bottom, rgba(9,9,11,0) 0%, #09090b 100%)"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": {
+      "style": "Crystal Glass",
+      "classes": "bg-black/60 backdrop-blur-xl border border-white/10 shadow-2xl"
+    },
+    "borders": {
+      "style": "Tracing Beam",
+      "classes": "border border-white/10 hover:border-green-500/50 transition-colors duration-300"
+    },
+    "shadows": {
+      "neon_glow": "0 0 20px rgba(34, 197, 94, 0.3)",
+      "void_depth": "0 20px 40px -10px rgba(0,0,0,0.8)"
+    }
+  },
+  "layout_strategy": {
+    "spacing": "Generous (Tailwind Scale: p-6, p-8, p-12)",
+    "grid_system": {
+      "dashboard": "The Control Room (Dense, Data-Heavy)",
+      "marketing": "The Tetris (Asymmetrical, Art-Heavy)"
+    },
+    "container_rules": "Containers with borders MUST have internal padding (p-6 or p-8)."
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-black font-bold uppercase tracking-wider hover:bg-primary/90 skew-x-[-10deg] px-8 py-3 rounded-none",
+      "secondary": "bg-transparent border border-white/20 text-white hover:bg-white/10 uppercase tracking-wider skew-x-[-10deg] px-8 py-3 rounded-none"
+    },
+    "cards": {
+      "style": "Flat, sharp edges, 1px border, no shadow by default. Hover: Neon border glow.",
+      "classes": "bg-card border-border rounded-none"
+    },
+    "inputs": {
+      "style": "Minimal, bottom-border only OR solid block.",
+      "classes": "bg-secondary/50 border-transparent focus:border-primary rounded-none"
+    }
+  },
+  "image_urls": {
+    "hero_backgrounds": [
+      {
+        "url": "https://images.unsplash.com/photo-1629935635086-1855c8d125cc?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDF8MHwxfHNlYXJjaHwxfHxuZW9uJTIwc3BvcnRzJTIwY2FyJTIwbmlnaHR8ZW58MHx8fHwxNzY2MTkyMDI2fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Black car in parking lot, moody neon vibe",
+        "category": "hero"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1626684458962-c38a637af935?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDF8MHwxfHNlYXJjaHw0fHxuZW9uJTIwc3BvcnRzJTIwY2FyJTIwbmlnaHR8ZW58MHx8fHwxNzY2MTkyMDI2fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Peugeot RCZ under neon lights, wide shot",
+        "category": "hero"
+      }
+    ],
+    "avatars": [
+      {
+        "url": "https://images.unsplash.com/photo-1711662171213-4141abec218f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzh8MHwxfHNlYXJjaHwyfHxjeWJlcnB1bmslMjByYWNlciUyMHBvcnRyYWl0fGVufDB8fHx8MTc2NjE5MjAyOHww&ixlib=rb-4.1.0&q=85",
+        "description": "Woman in futuristic suit with neon glasses",
+        "category": "avatar"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1585900464046-f713a61424dd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzh8MHwxfHNlYXJjaHwzfHxjeWJlcnB1bmslMjByYWNlciUyMHBvcnRyYWl0fGVufDB8fHx8MTc2NjE5MjAyOHww&ixlib=rb-4.1.0&q=85",
+        "description": "Man in black and white hoodie, mysterious",
+        "category": "avatar"
+      }
+    ],
+    "maps": [
+      {
+        "url": "https://images.unsplash.com/photo-1706976577957-17d68b2c632d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2Mzl8MHwxfHNlYXJjaHwxfHxkYXJrJTIwY2l0eSUyMG1hcCUyMG5pZ2h0fGVufDB8fHx8MTc2NjE5MjAzMXww&ixlib=rb-4.1.0&q=85",
+        "description": "Aerial view of city at night",
+        "category": "map_preview"
+      }
+    ]
+  },
+  "motion": {
+    "libraries": ["framer-motion"],
+    "transitions": {
+      "default": "transition-all duration-300 ease-out",
+      "hover": "hover:-translate-y-1 hover:shadow-lg"
+    },
+    "animations": {
+      "fade_in": {
+        "initial": { "opacity": 0, "y": 20 },
+        "animate": { "opacity": 1, "y": 0 },
+        "transition": { "duration": 0.5 }
+      }
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. INSTALL FONTS FIRST: Add the Google Fonts link to public/index.html immediately.",
+    "2. CONFIGURE TAILWIND: Update tailwind.config.js with the 'Unbounded' and 'Chivo' font families and the custom colors.",
+    "3. MAP IMPLEMENTATION: Use 'react-leaflet' with a dark tile layer (e.g., CartoDB Dark Matter). Do NOT use default OSM tiles (they are too bright).",
+    "4. SHADCN CUSTOMIZATION: When installing shadcn components, override the default 'rounded-md' to 'rounded-none' or 'rounded-sm' to match the sharp, aggressive racing aesthetic.",
+    "5. LAYOUT: The Map Dashboard should be full-screen with floating glassmorphism panels for the 'Lobby', 'Chat', and 'Profile'.",
+    "6. GARAGE: Use a grid layout for cars. Each car card should look like a trading card with stats.",
+    "7. DATA-TESTID: Add data-testid to all interactive elements."
+  ],
+  "universal_guidelines": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms.",
+    "You MUST NOT center align the app container.",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Use sonner for toasts."
+  ]
+}
