@@ -404,7 +404,11 @@ class ForzaCommunityAPITester:
         
         # We can't easily test WebSocket connections in this simple test,
         # but we can verify the endpoint exists by checking if it returns proper error codes
-        import websocket
+        try:
+            import websocket
+        except ImportError:
+            print("   ❌ websocket-client not available, skipping WebSocket test")
+            return False
         
         try:
             # Try to connect to WebSocket endpoint
@@ -415,9 +419,14 @@ class ForzaCommunityAPITester:
             
             # Create WebSocket connection (this will test if endpoint is accessible)
             ws = websocket.create_connection(ws_url, timeout=5)
+            
+            # Send a ping message to test the connection
+            ws.send('{"type": "ping"}')
+            result = ws.recv()
             ws.close()
             
-            print("   ✅ WebSocket endpoint is accessible")
+            print("   ✅ WebSocket endpoint is accessible and responsive")
+            print(f"   Response: {result}")
             return True
             
         except Exception as e:
