@@ -259,6 +259,7 @@ const SquadPage = () => {
               onClose={() => setShowChat(false)}
               wsConnection={websocket}
             />
+          </section>
         ) : (
           <>
             {/* Pending Invites */}
