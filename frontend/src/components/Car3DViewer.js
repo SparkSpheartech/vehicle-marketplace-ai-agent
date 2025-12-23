@@ -6,15 +6,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 
 // Available 3D car models with their URLs
 const CAR_MODELS = {
-  // High quality sports cars
-  ferrari: {
-    url: 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/ferrari.glb',
-    scale: 0.8,
-    position: [0, 0, 0],
-    draco: true,
-    bodyParts: ['body'],
-    name: 'Ferrari 458'
-  },
+  // High quality sports cars - BMW M4 is default (no DRACO needed)
   bmw_m4: {
     url: 'https://raw.githubusercontent.com/harmasctl/3dmodel-car/main/bmw_m4_f82.glb',
     scale: 0.01,
