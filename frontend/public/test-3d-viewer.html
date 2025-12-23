@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Car Viewer Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0a0a0a;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .viewer {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #22c55e;
+            margin: 20px 0;
+            position: relative;
+        }
+        .info {
+            background: #1a1a1a;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #22c55e;
+        }
+        .error {
+            background: #2d1b1b;
+            border-left-color: #ef4444;
+            color: #ef4444;
+        }
+        .success {
+            background: #1b2d1b;
+            border-left-color: #22c55e;
+            color: #22c55e;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #22c55e;
+        }
+        .model-selector {
+            margin: 20px 0;
+        }
+        .model-selector button {
+            background: #22c55e;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .model-selector button:hover {
+            background: #1ea34a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 3D Car Viewer Test</h1>
+        <p>Testing GLB model loading from GitHub repositories</p>
+        
+        <div class="model-selector">
+            <h3>Select Model to Test:</h3>
+            <button onclick="loadModel('bmw_m4')">BMW M4</button>
+            <button onclick="loadModel('bmw_1m')">BMW 1M</button>
+            <button onclick="loadModel('concept')">Concept Car</button>
+            <button onclick="loadModel('racing')">Racing Chassis</button>
+            <button onclick="loadModel('toycar')">Toy Car</button>
+        </div>
+        
+        <div id="viewer" class="viewer">
+            <div class="loading">Click a button above to load a 3D model</div>
+        </div>
+        
+        <div id="info" class="info">
+            <h3>Model Information</h3>
+            <p>No model loaded</p>
+        </div>
+        
+        <div id="logs" class="info">
+            <h3>Loading Logs</h3>
+            <div id="log-content">Ready to test...</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+
+    <script>
+        // Car models configuration (same as in the React component)
+        const CAR_MODELS = {
+            bmw_m4: {
+                url: 'https://raw.githubusercontent.com/harmasctl/3dmodel-car/main/bmw_m4_f82.glb',
+                scale: 0.01,
+                position: [0, 0, 0],
+                draco: false,
+                name: 'BMW M4'
+            },
+            bmw_1m: {
+                url: 'https://raw.githubusercontent.com/harmasctl/3dmodel-car/main/ac_-_bmw_1m_free.glb',
+                scale: 0.01,
+                position: [0, 0, 0],
+                draco: false,
+                name: 'BMW 1M'
+            },
+            concept: {
+                url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/CarConcept/glTF-Binary/CarConcept.glb',
+                scale: 0.5,
+                position: [0, 0, 0],
+                draco: false,
+                name: 'Concept Car'
+            },
+            racing: {
+                url: 'https://raw.githubusercontent.com/pmndrs/racing-game/main/public/models/chassis-draco.glb',
+                scale: 1,
+                position: [0, 0.3, 0],
+                draco: true,
+                name: 'Racing Chassis'
+            },
+            toycar: {
+                url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/ToyCar/glTF-Binary/ToyCar.glb',
+                scale: 80,
+                position: [0, 0, 0],
+                draco: false,
+                name: 'Toy Car'
+            }
+        };
+
+        let scene, camera, renderer, controls, currentModel;
+        let isInitialized = false;
+
+        function log(message, type = 'info') {
+            const logContent = document.getElementById('log-content');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            
+            console.log(logEntry);
+            logContent.innerHTML += logEntry + '<br>';
+            logContent.scrollTop = logContent.scrollHeight;
+            
+            if (type === 'error') {
+                logContent.innerHTML += '<span style="color: #ef4444;">' + logEntry + '</span><br>';
+            } else if (type === 'success') {
+                logContent.innerHTML += '<span style="color: #22c55e;">' + logEntry + '</span><br>';
+            }
+        }
+
+        function initThreeJS() {
+            if (isInitialized) return;
+            
+            log('Initializing Three.js scene...');
+            
+            const container = document.getElementById('viewer');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color('#0a0a0a');
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
+            camera.position.set(4, 2, 4);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+
+            container.innerHTML = '';
+            container.appendChild(renderer.domElement);
+
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enablePan = false;
+            controls.minDistance = 3;
+            controls.maxDistance = 10;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.8;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            keyLight.position.set(5, 8, 5);
+            keyLight.castShadow = true;
+            scene.add(keyLight);
+
+            const fillLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            fillLight.position.set(-5, 5, -5);
+            scene.add(fillLight);
+
+            // Ground
+            const gridHelper = new THREE.GridHelper(20, 40, 0x22c55e, 0x1a1a1a);
+            scene.add(gridHelper);
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            isInitialized = true;
+            log('Three.js initialized successfully', 'success');
+        }
+
+        function loadModel(modelKey) {
+            if (!isInitialized) {
+                initThreeJS();
+            }
+
+            const config = CAR_MODELS[modelKey];
+            if (!config) {
+                log(`Model ${modelKey} not found`, 'error');
+                return;
+            }
+
+            log(`Loading model: ${config.name}`);
+            log(`URL: ${config.url}`);
+            log(`Scale: ${config.scale}, DRACO: ${config.draco}`);
+
+            // Update info panel
+            const infoPanel = document.getElementById('info');
+            infoPanel.innerHTML = `
+                <h3>Model Information</h3>
+                <p><strong>Name:</strong> ${config.name}</p>
+                <p><strong>URL:</strong> ${config.url}</p>
+                <p><strong>Scale:</strong> ${config.scale}</p>
+                <p><strong>DRACO Compression:</strong> ${config.draco ? 'Yes' : 'No'}</p>
+                <p><strong>Status:</strong> Loading...</p>
+            `;
+
+            // Remove previous model
+            if (currentModel) {
+                scene.remove(currentModel);
+                currentModel = null;
+            }
+
+            // Load new model
+            const loader = new THREE.GLTFLoader();
+            
+            // Setup DRACO loader if needed
+            if (config.draco) {
+                const dracoLoader = new THREE.DRACOLoader();
+                dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+                dracoLoader.setDecoderConfig({ type: 'js' });
+                loader.setDRACOLoader(dracoLoader);
+                log('DRACO loader configured');
+            }
+
+            loader.load(
+                config.url,
+                (gltf) => {
+                    log(`Model loaded successfully: ${config.name}`, 'success');
+                    
+                    const model = gltf.scene;
+                    model.scale.setScalar(config.scale);
+                    model.position.set(...config.position);
+
+                    // Center the model
+                    const box = new THREE.Box3().setFromObject(model);
+                    const center = box.getCenter(new THREE.Vector3());
+                    model.position.x -= center.x;
+                    model.position.z -= center.z;
+
+                    // Apply shadows
+                    model.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+
+                    scene.add(model);
+                    currentModel = model;
+
+                    // Update info panel
+                    const infoPanel = document.getElementById('info');
+                    infoPanel.innerHTML = `
+                        <h3>Model Information</h3>
+                        <p><strong>Name:</strong> ${config.name}</p>
+                        <p><strong>URL:</strong> ${config.url}</p>
+                        <p><strong>Scale:</strong> ${config.scale}</p>
+                        <p><strong>DRACO Compression:</strong> ${config.draco ? 'Yes' : 'No'}</p>
+                        <p><strong>Status:</strong> ✅ Loaded Successfully</p>
+                        <p><strong>Vertices:</strong> ${model.children.length} objects</p>
+                    `;
+                    infoPanel.className = 'info success';
+
+                    log(`Model has ${model.children.length} child objects`, 'success');
+                },
+                (progress) => {
+                    const percent = (progress.loaded / progress.total * 100).toFixed(1);
+                    log(`Loading progress: ${percent}%`);
+                },
+                (error) => {
+                    log(`Failed to load model: ${error.message}`, 'error');
+                    console.error('Model loading error:', error);
+                    
+                    // Update info panel
+                    const infoPanel = document.getElementById('info');
+                    infoPanel.innerHTML = `
+                        <h3>Model Information</h3>
+                        <p><strong>Name:</strong> ${config.name}</p>
+                        <p><strong>URL:</strong> ${config.url}</p>
+                        <p><strong>Status:</strong> ❌ Failed to Load</p>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    `;
+                    infoPanel.className = 'info error';
+                }
+            );
+        }
+
+        // Test Three.js availability
+        window.addEventListener('load', () => {
+            if (typeof THREE !== 'undefined') {
+                log('Three.js library loaded successfully', 'success');
+                log(`Three.js version: ${THREE.REVISION}`);
+            } else {
+                log('Three.js library not found', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
