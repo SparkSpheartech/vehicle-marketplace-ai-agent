@@ -236,8 +236,29 @@ const SquadPage = () => {
                 <LogOut className="w-4 h-4 mr-2" />
                 Leave Squad
               </Button>
+              
+              {/* Squad Chat Button */}
+              <Button
+                onClick={() => setShowChat(true)}
+                className="ml-3 bg-neon-cyan text-black hover:bg-neon-cyan/80"
+                data-testid="open-chat-btn"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Squad Chat
+                {isConnected && (
+                  <span className="ml-2 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                )}
+              </Button>
             </div>
-          </section>
+            
+            {/* Squad Chat Component */}
+            <SquadChat
+              squadId={squad.squad_id}
+              squadName={squad.name}
+              isOpen={showChat}
+              onClose={() => setShowChat(false)}
+              wsConnection={websocket}
+            />
         ) : (
           <>
             {/* Pending Invites */}
