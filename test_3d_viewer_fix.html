@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMW 3D Model Scale Fix Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0a0a0a;
+            color: white;
+            font-family: monospace;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .viewer-container {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #22c55e;
+            margin: 20px 0;
+            position: relative;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+        }
+        .test-info {
+            background: #1a1a1a;
+            padding: 15px;
+            border-left: 4px solid #22c55e;
+            margin: 10px 0;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #22c55e20; border: 1px solid #22c55e; }
+        .error { background: #ef444420; border: 1px solid #ef4444; }
+        .warning { background: #f9731620; border: 1px solid #f97316; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🚗 BMW 3D Model Scale Fix Verification</h1>
+        <p>Testing the BMW model scaling fix from 0.01 to 1.0</p>
+        
+        <div class="test-info">
+            <h3>Test Details:</h3>
+            <ul>
+                <li><strong>BMW M4 Model:</strong> Scale should be 1.0 (was 0.01)</li>
+                <li><strong>BMW 1M Model:</strong> Scale should be 1.0 (was 0.01)</li>
+                <li><strong>Expected Result:</strong> Models should be clearly visible</li>
+                <li><strong>Previous Issue:</strong> Models were invisible due to 1% scale</li>
+            </ul>
+        </div>
+
+        <div id="test-status"></div>
+
+        <h2>BMW M4 Test (Fixed Scale: 1.0)</h2>
+        <div id="bmw-m4-viewer" class="viewer-container"></div>
+        <div id="bmw-m4-status"></div>
+
+        <h2>BMW 1M Test (Fixed Scale: 1.0)</h2>
+        <div id="bmw-1m-viewer" class="viewer-container"></div>
+        <div id="bmw-1m-status"></div>
+
+        <h2>Concept Car Reference (Scale: 0.5)</h2>
+        <div id="concept-viewer" class="viewer-container"></div>
+        <div id="concept-status"></div>
+    </div>
+
+    <script>
+        // BMW Model configurations with FIXED scales
+        const CAR_MODELS = {
+            bmw_m4: {
+                url: 'https://raw.githubusercontent.com/harmasctl/3dmodel-car/main/bmw_m4_f82.glb',
+                scale: 1.0, // FIXED: Was 0.01, now 1.0
+                position: [0, 0, 0],
+                name: 'BMW M4 (Fixed Scale: 1.0)'
+            },
+            bmw_1m: {
+                url: 'https://raw.githubusercontent.com/harmasctl/3dmodel-car/main/ac_-_bmw_1m_free.glb',
+                scale: 1.0, // FIXED: Was 0.01, now 1.0
+                position: [0, 0, 0],
+                name: 'BMW 1M (Fixed Scale: 1.0)'
+            },
+            concept: {
+                url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/CarConcept/glTF-Binary/CarConcept.glb',
+                scale: 0.5, // Reference model that was already working
+                position: [0, 0, 0],
+                name: 'Concept Car (Reference: 0.5)'
+            }
+        };
+
+        function updateStatus(containerId, message, type = 'info') {
+            const statusDiv = document.getElementById(containerId);
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'warning';
+            statusDiv.innerHTML = `<div class="status ${className}">${message}</div>`;
+        }
+
+        function createViewer(containerId, modelConfig, statusId) {
+            const container = document.getElementById(containerId);
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // Scene setup
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color('#0a0a0a');
+
+            // Camera
+            const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
+            camera.position.set(4, 2, 4);
+
+            // Renderer
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Controls
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1;
+            controls.target.set(0, 0.5, 0);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 5, 5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            // Grid
+            const gridHelper = new THREE.GridHelper(10, 20, 0x22c55e, 0x333333);
+            scene.add(gridHelper);
+
+            // Load model
+            updateStatus(statusId, `🔄 Loading ${modelConfig.name}...`, 'warning');
+            
+            const loader = new THREE.GLTFLoader();
+            loader.load(
+                modelConfig.url,
+                (gltf) => {
+                    const model = gltf.scene;
+                    
+                    // Apply the FIXED scale
+                    model.scale.setScalar(modelConfig.scale);
+                    model.position.set(...modelConfig.position);
+
+                    // Center the model
+                    const box = new THREE.Box3().setFromObject(model);
+                    const center = box.getCenter(new THREE.Vector3());
+                    model.position.x -= center.x;
+                    model.position.z -= center.z;
+
+                    // Calculate model dimensions for verification
+                    const size = new THREE.Vector3();
+                    box.getSize(size);
+
+                    scene.add(model);
+                    
+                    updateStatus(statusId, 
+                        `✅ ${modelConfig.name} loaded successfully!<br>
+                        📏 Scale: ${modelConfig.scale}<br>
+                        📐 Dimensions: ${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)}<br>
+                        🎯 Model should be clearly visible at this scale`, 
+                        'success'
+                    );
+                },
+                (progress) => {
+                    const percent = (progress.loaded / progress.total * 100).toFixed(1);
+                    updateStatus(statusId, `🔄 Loading ${modelConfig.name}... ${percent}%`, 'warning');
+                },
+                (error) => {
+                    console.error('Error loading model:', error);
+                    updateStatus(statusId, 
+                        `❌ Failed to load ${modelConfig.name}<br>
+                        Error: ${error.message || 'Unknown error'}`, 
+                        'error'
+                    );
+                }
+            );
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            return { scene, camera, renderer, controls };
+        }
+
+        // Initialize test
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus('test-status', 
+                `🧪 Starting BMW Model Scale Fix Test<br>
+                Testing BMW M4 and BMW 1M with corrected scale values (1.0 instead of 0.01)<br>
+                If the fix is working, both BMW models should be clearly visible`, 
+                'warning'
+            );
+
+            // Create viewers for each model
+            setTimeout(() => {
+                createViewer('bmw-m4-viewer', CAR_MODELS.bmw_m4, 'bmw-m4-status');
+            }, 500);
+
+            setTimeout(() => {
+                createViewer('bmw-1m-viewer', CAR_MODELS.bmw_1m, 'bmw-1m-status');
+            }, 1000);
+
+            setTimeout(() => {
+                createViewer('concept-viewer', CAR_MODELS.concept, 'concept-status');
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
