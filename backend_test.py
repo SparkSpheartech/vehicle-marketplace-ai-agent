@@ -359,6 +359,73 @@ class ForzaCommunityAPITester:
         
         return success1 and success2
 
+    def test_squad_chat_endpoints(self):
+        """Test squad chat endpoints"""
+        print("\n=== SQUAD CHAT ENDPOINTS TESTS ===")
+        
+        # For testing chat endpoints, we need a squad. Let's use a test squad ID
+        test_squad_id = "squad_test123"
+        
+        # Test get squad messages (should return 403 if not in squad)
+        success1, messages_data = self.run_test(
+            f"Get Squad Messages (/squads/{test_squad_id}/messages)",
+            "GET",
+            f"/squads/{test_squad_id}/messages",
+            403  # Expected 403 since user is not in this squad
+        )
+        
+        if success1:
+            print(f"   ✅ Correctly returned 403 for non-member access")
+        
+        # Test send squad message (should also return 403)
+        message_data = {
+            "content": "Test message",
+            "message_type": "text"
+        }
+        
+        success2, send_response = self.run_test(
+            f"Send Squad Message (/squads/{test_squad_id}/messages)",
+            "POST",
+            f"/squads/{test_squad_id}/messages",
+            403,  # Expected 403 since user is not in this squad
+            data=message_data
+        )
+        
+        if success2:
+            print(f"   ✅ Correctly returned 403 for non-member message send")
+        
+        print("   Note: Full squad chat testing requires squad membership")
+        
+        return success1 and success2
+
+    def test_websocket_endpoint(self):
+        """Test WebSocket endpoint accessibility"""
+        print("\n=== WEBSOCKET ENDPOINT TESTS ===")
+        
+        # We can't easily test WebSocket connections in this simple test,
+        # but we can verify the endpoint exists by checking if it returns proper error codes
+        import websocket
+        
+        try:
+            # Try to connect to WebSocket endpoint
+            ws_url = self.base_url.replace('https://', 'wss://').replace('http://', 'ws://').replace('/api', '')
+            ws_url = f"{ws_url}/ws/{self.session_token}"
+            
+            print(f"   Testing WebSocket URL: {ws_url}")
+            
+            # Create WebSocket connection (this will test if endpoint is accessible)
+            ws = websocket.create_connection(ws_url, timeout=5)
+            ws.close()
+            
+            print("   ✅ WebSocket endpoint is accessible")
+            return True
+            
+        except Exception as e:
+            print(f"   ❌ WebSocket connection failed: {str(e)}")
+            # This might be expected if WebSocket requires specific authentication
+            print("   Note: WebSocket may require specific authentication flow")
+            return False
+
     def test_discovery_endpoints(self):
         """Test user discovery endpoints"""
         print("\n=== DISCOVERY ENDPOINTS TESTS ===")
