@@ -461,6 +461,8 @@ class ForzaCommunityAPITester:
         test_results.append(self.test_music_endpoints())
         test_results.append(self.test_lobby_endpoints())
         test_results.append(self.test_squad_endpoints())
+        test_results.append(self.test_squad_chat_endpoints())
+        test_results.append(self.test_websocket_endpoint())
         test_results.append(self.test_discovery_endpoints())
         
         # Print summary
