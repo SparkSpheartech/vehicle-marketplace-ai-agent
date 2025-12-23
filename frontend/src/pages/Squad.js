@@ -21,13 +21,14 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const PAYPAL_CLIENT_ID = process.env.REACT_APP_PAYPAL_CLIENT_ID || 'sb'; // 'sb' for sandbox
 
 const SquadPage = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, sessionToken } = useAuth();
   const navigate = useNavigate();
   
   const [squad, setSquad] = useState(null);
   const [invites, setInvites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const [createForm, setCreateForm] = useState({
     name: '',
     tag: '',
@@ -36,6 +37,9 @@ const SquadPage = () => {
   });
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [paymentId, setPaymentId] = useState(null);
+
+  // WebSocket connection for real-time chat
+  const { isConnected, lastMessage, websocket } = useWebSocket(sessionToken);
 
   useEffect(() => {
     fetchSquadData();
