@@ -617,6 +617,7 @@ const Garage = () => {
                 {/* 3D Viewer */}
                 <div className="relative">
                   <Car3DViewer
+                    make={selectedCar.make}
                     color={selectedCar.color}
                     secondaryColor={selectedCar.secondary_color}
                     mods={selectedCar.mods}
