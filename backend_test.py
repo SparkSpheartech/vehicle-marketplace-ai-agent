@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, Tuple
 
 class ForzaCommunityAPITester:
-    def __init__(self, base_url="https://forzacommunity.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://car-squad-live.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.session_token = "test_session_1766193900361"  # From created test user
         self.user_id = "test-user-1766193900361"
