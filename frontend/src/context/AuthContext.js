@@ -7,6 +7,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [sessionToken, setSessionToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,8 +20,14 @@ export const AuthProvider = ({ children }) => {
         withCredentials: true
       });
       setUser(response.data);
+      // Try to get session token from localStorage as backup
+      const storedToken = localStorage.getItem('session_token');
+      if (storedToken) {
+        setSessionToken(storedToken);
+      }
     } catch (error) {
       setUser(null);
+      setSessionToken(null);
     } finally {
       setLoading(false);
     }
@@ -39,6 +46,8 @@ export const AuthProvider = ({ children }) => {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
+      setSessionToken(null);
+      localStorage.removeItem('session_token');
       window.location.href = '/';
     }
   };
@@ -51,6 +60,11 @@ export const AuthProvider = ({ children }) => {
         { withCredentials: true }
       );
       setUser(response.data.user);
+      // Store session token for WebSocket authentication
+      if (response.data.session_token) {
+        setSessionToken(response.data.session_token);
+        localStorage.setItem('session_token', response.data.session_token);
+      }
       return response.data.user;
     } catch (error) {
       console.error('Session exchange error:', error);
@@ -65,6 +79,7 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{ 
       user, 
+      sessionToken,
       loading, 
       login, 
       logout, 
