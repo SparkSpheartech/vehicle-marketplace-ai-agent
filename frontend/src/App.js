@@ -18,6 +18,9 @@ import Leaderboards from "@/pages/Leaderboards";
 import Achievements from "@/pages/Achievements";
 import RoutesPage from "@/pages/Routes";
 
+// Components
+import Navbar from "@/components/Navbar";
+
 // Auth context
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 
@@ -39,7 +42,12 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
-  return children;
+  return (
+    <>
+      <Navbar />
+      {children}
+    </>
+  );
 };
 
 function AppRouter() {
