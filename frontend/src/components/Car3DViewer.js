@@ -51,22 +51,25 @@ const CAR_MODELS = {
 
 // Map car makes to available models
 const MAKE_MODEL_MAP = {
-  'Ferrari': 'ferrari',
+  'Ferrari': 'concept',  // Use concept car for Ferrari (luxury/exotic)
   'BMW': 'bmw_m4',
   'Lamborghini': 'concept',
   'McLaren': 'concept',
-  'Porsche': 'ferrari',
+  'Porsche': 'bmw_m4',
   'Mercedes': 'bmw_m4',
   'Audi': 'bmw_1m',
-  'Nissan': 'racing',
-  'Toyota': 'racing',
-  'Honda': 'racing',
-  'Mazda': 'racing',
-  'Subaru': 'racing',
-  'Mitsubishi': 'racing',
-  'Lexus': 'bmw_1m',
-  'Acura': 'bmw_1m',
-  'default': 'ferrari'
+  'Nissan': 'bmw_m4',
+  'Toyota': 'bmw_1m',
+  'Honda': 'bmw_1m',
+  'Mazda': 'bmw_1m',
+  'Subaru': 'bmw_1m',
+  'Mitsubishi': 'bmw_1m',
+  'Lexus': 'bmw_m4',
+  'Acura': 'bmw_m4',
+  'Chevrolet': 'bmw_m4',
+  'Ford': 'bmw_m4',
+  'Dodge': 'bmw_m4',
+  'default': 'bmw_m4'
 };
 
 // Main 3D Car Viewer Component
