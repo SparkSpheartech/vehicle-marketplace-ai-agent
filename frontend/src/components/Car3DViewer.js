@@ -266,12 +266,11 @@ const Car3DViewer = ({
     return new Promise((resolve, reject) => {
       const loader = new GLTFLoader();
       
-      // Setup DRACO loader if needed
-      if (config.draco) {
-        const dracoLoader = new DRACOLoader();
-        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-        loader.setDRACOLoader(dracoLoader);
-      }
+      // Always setup DRACO loader for models that may need it
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+      dracoLoader.setDecoderConfig({ type: 'js' });
+      loader.setDRACOLoader(dracoLoader);
 
       loader.load(
         config.url,
