@@ -9,7 +9,7 @@ const CAR_MODELS = {
   // High quality sports cars - BMW M4 is default (no DRACO needed)
   bmw_m4: {
     url: 'https://raw.githubusercontent.com/harmasctl/3dmodel-car/main/bmw_m4_f82.glb',
-    scale: 0.01,
+    scale: 1.0,
     position: [0, 0, 0],
     draco: false,
     bodyParts: [],
@@ -17,7 +17,7 @@ const CAR_MODELS = {
   },
   bmw_1m: {
     url: 'https://raw.githubusercontent.com/harmasctl/3dmodel-car/main/ac_-_bmw_1m_free.glb',
-    scale: 0.01,
+    scale: 1.0,
     position: [0, 0, 0],
     draco: false,
     bodyParts: [],
