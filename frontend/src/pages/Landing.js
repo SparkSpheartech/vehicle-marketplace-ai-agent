@@ -163,7 +163,7 @@ const Landing = () => {
             READY TO <span className="text-neon-green neon-text">ROLL?</span>
           </h2>
           <p className="text-zinc-400 text-lg mb-10 max-w-xl mx-auto">
-            Join thousands of car enthusiasts already connecting through ForzaCommunity.
+            Join thousands of car enthusiasts already connecting through Kynetik.
           </p>
           <Button
             onClick={login}
