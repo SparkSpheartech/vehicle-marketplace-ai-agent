@@ -145,39 +145,14 @@ const Profile = () => {
               AVATAR <span className="text-neon-green">STYLE</span>
             </h2>
 
-            {/* Avatar Preview */}
-            <div className="relative w-48 h-48 mx-auto mb-8">
-              <div 
-                className="w-full h-full rounded-full border-4 border-neon-green shadow-neon overflow-hidden"
-                style={{ backgroundColor: formData.avatar_style.skin_tone }}
-              >
-                {/* Simple avatar representation */}
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-center">
-                    {/* Hair */}
-                    <div 
-                      className="w-20 h-8 rounded-t-full mx-auto -mb-2"
-                      style={{ backgroundColor: formData.avatar_style.hair_color }}
-                    />
-                    {/* Face */}
-                    <div 
-                      className="w-16 h-16 rounded-full mx-auto flex items-center justify-center"
-                      style={{ backgroundColor: formData.avatar_style.skin_tone }}
-                    >
-                      {/* Eyes */}
-                      <div className="flex gap-4 -mt-2">
-                        <div className="w-2 h-2 bg-zinc-900 rounded-full" />
-                        <div className="w-2 h-2 bg-zinc-900 rounded-full" />
-                      </div>
-                    </div>
-                    {/* Outfit */}
-                    <div 
-                      className="w-24 h-12 rounded-t-lg mx-auto -mt-2"
-                      style={{ backgroundColor: formData.avatar_style.outfit_color }}
-                    />
-                  </div>
-                </div>
-              </div>
+            {/* Avatar Preview - 3D Viewer */}
+            <div className="relative mb-8">
+              <Avatar3DViewer 
+                config={formData.avatar_style}
+                height="280px"
+                autoRotate={true}
+                interactive={true}
+              />
             </div>
 
             {/* Skin Tone */}
