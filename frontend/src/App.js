@@ -13,6 +13,10 @@ import Lobbies from "@/pages/Lobbies";
 import UserProfile from "@/pages/UserProfile";
 import Requests from "@/pages/Requests";
 import Squad from "@/pages/Squad";
+import CarMeets from "@/pages/CarMeets";
+import Leaderboards from "@/pages/Leaderboards";
+import Achievements from "@/pages/Achievements";
+import RoutesPage from "@/pages/Routes";
 
 // Auth context
 import { AuthProvider, useAuth } from "@/context/AuthContext";
@@ -42,7 +46,6 @@ function AppRouter() {
   const location = useLocation();
 
   // Check URL fragment for session_id SYNCHRONOUSLY during render
-  // This prevents race conditions - process new session_id FIRST before checking existing session
   if (location.hash?.includes('session_id=')) {
     return <AuthCallback />;
   }
@@ -104,6 +107,38 @@ function AppRouter() {
         element={
           <ProtectedRoute>
             <Squad />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/meets"
+        element={
+          <ProtectedRoute>
+            <CarMeets />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/leaderboards"
+        element={
+          <ProtectedRoute>
+            <Leaderboards />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/achievements"
+        element={
+          <ProtectedRoute>
+            <Achievements />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/routes"
+        element={
+          <ProtectedRoute>
+            <RoutesPage />
           </ProtectedRoute>
         }
       />
