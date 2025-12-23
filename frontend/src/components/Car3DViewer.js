@@ -1,12 +1,22 @@
-import React, { useRef, Suspense, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Environment, ContactShadows, Float, PerspectiveCamera } from '@react-three/drei';
+import React, { useRef, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-// Procedural Sports Car Component
-const SportsCar = ({ color = '#22c55e', secondaryColor = '#000000', mods = {} }) => {
-  const meshRef = useRef();
+// Main 3D Viewer Component using vanilla Three.js
+const Car3DViewer = ({
+  color = '#22c55e',
+  secondaryColor = '#000000',
+  mods = {},
+  height = '300px',
+}) => {
+  const containerRef = useRef(null);
+  const sceneRef = useRef(null);
+  const rendererRef = useRef(null);
+  const cameraRef = useRef(null);
+  const controlsRef = useRef(null);
+  const carGroupRef = useRef(null);
   const wheelsRef = useRef([]);
+  const animationIdRef = useRef(null);
 
   // Get neon color based on mod
   const neonColor = useMemo(() => {
@@ -21,400 +31,407 @@ const SportsCar = ({ color = '#22c55e', secondaryColor = '#000000', mods = {} })
     }
   }, [mods?.neon]);
 
-  // Animate wheels
-  useFrame((state, delta) => {
-    wheelsRef.current.forEach((wheel) => {
-      if (wheel) {
-        wheel.rotation.x += delta * 2;
-      }
-    });
-  });
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-  // Create body material
-  const bodyMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
+    const container = containerRef.current;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    // Scene setup
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#0a0a0a');
+    sceneRef.current = scene;
+
+    // Camera
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.set(5, 3, 5);
+    cameraRef.current = camera;
+
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ 
+      antialias: true,
+      alpha: true 
+    });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    container.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
+
+    // Controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enablePan = false;
+    controls.minDistance = 4;
+    controls.maxDistance = 10;
+    controls.minPolarAngle = Math.PI / 6;
+    controls.maxPolarAngle = Math.PI / 2.2;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.5;
+    controlsRef.current = controls;
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
+
+    const spotLight = new THREE.SpotLight(0xffffff, 1.5);
+    spotLight.position.set(10, 10, 10);
+    spotLight.castShadow = true;
+    spotLight.shadow.mapSize.width = 2048;
+    spotLight.shadow.mapSize.height = 2048;
+    scene.add(spotLight);
+
+    const spotLight2 = new THREE.SpotLight(0xffffff, 0.8);
+    spotLight2.position.set(-10, 10, -10);
+    scene.add(spotLight2);
+
+    // Rim light
+    const rimLight = new THREE.PointLight(0x06b6d4, 0.5);
+    rimLight.position.set(-5, 3, -5);
+    scene.add(rimLight);
+
+    // Ground grid
+    const gridHelper = new THREE.GridHelper(20, 40, 0x22c55e, 0x1a1a1a);
+    gridHelper.position.y = 0;
+    scene.add(gridHelper);
+
+    // Ground plane for shadow
+    const groundGeometry = new THREE.PlaneGeometry(20, 20);
+    const groundMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // Build the car
+    buildCar(scene, color, secondaryColor, mods, neonColor);
+
+    // Animation loop
+    const animate = () => {
+      animationIdRef.current = requestAnimationFrame(animate);
+      
+      // Rotate wheels
+      wheelsRef.current.forEach(wheel => {
+        if (wheel) wheel.rotation.x += 0.03;
+      });
+
+      // Float animation for car
+      if (carGroupRef.current) {
+        carGroupRef.current.position.y = 0.1 + Math.sin(Date.now() * 0.001) * 0.05;
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    // Handle resize
+    const handleResize = () => {
+      const newWidth = container.clientWidth;
+      const newHeight = container.clientHeight;
+      camera.aspect = newWidth / newHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(newWidth, newHeight);
+    };
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+      }
+      controls.dispose();
+      renderer.dispose();
+      if (container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
+      }
+    };
+  }, [color, secondaryColor, mods, neonColor]);
+
+  const buildCar = (scene, color, secondaryColor, mods, neonColor) => {
+    // Remove old car if exists
+    if (carGroupRef.current) {
+      scene.remove(carGroupRef.current);
+    }
+    wheelsRef.current = [];
+
+    const carGroup = new THREE.Group();
+    carGroupRef.current = carGroup;
+
+    // Materials
+    const bodyMaterial = new THREE.MeshStandardMaterial({
       color: color,
       metalness: 0.8,
       roughness: 0.2,
-      envMapIntensity: 1.5,
     });
-  }, [color]);
 
-  // Glass material
-  const glassMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
+    const glassMaterial = new THREE.MeshStandardMaterial({
       color: '#1a1a2e',
       transparent: true,
       opacity: 0.7,
       metalness: 0.9,
       roughness: 0.1,
     });
-  }, []);
 
-  // Wheel material
-  const wheelMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
+    const wheelMaterial = new THREE.MeshStandardMaterial({
       color: '#1a1a1a',
       metalness: 0.3,
       roughness: 0.8,
     });
-  }, []);
 
-  // Rim material
-  const rimMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
+    const rimMaterial = new THREE.MeshStandardMaterial({
       color: '#888888',
       metalness: 0.9,
       roughness: 0.1,
     });
-  }, []);
 
-  // Light materials
-  const headlightMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
-      color: '#ffffff',
-      emissive: '#ffffff',
-      emissiveIntensity: 2,
-    });
-  }, []);
-
-  const taillightMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
-      color: '#ff0000',
-      emissive: '#ff0000',
-      emissiveIntensity: 1.5,
-    });
-  }, []);
-
-  // Neon underglow material
-  const neonMaterial = useMemo(() => {
-    if (!neonColor) return null;
-    return new THREE.MeshStandardMaterial({
-      color: neonColor,
-      emissive: neonColor,
-      emissiveIntensity: 3,
-      transparent: true,
-      opacity: 0.8,
-    });
-  }, [neonColor]);
-
-  // Stripe material
-  const stripeMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
+    const stripeMaterial = new THREE.MeshStandardMaterial({
       color: secondaryColor,
       metalness: 0.7,
       roughness: 0.3,
     });
-  }, [secondaryColor]);
 
-  // Create wheel
-  const Wheel = ({ position, ref }) => (
-    <group position={position}>
-      {/* Tire */}
-      <mesh ref={ref} rotation={[0, 0, Math.PI / 2]} castShadow>
-        <cylinderGeometry args={[0.35, 0.35, 0.25, 32]} />
-        <primitive object={wheelMaterial} attach="material" />
-      </mesh>
-      {/* Rim */}
-      <mesh rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.22, 0.22, 0.26, 16]} />
-        <primitive object={rimMaterial} attach="material" />
-      </mesh>
-      {/* Rim spokes */}
-      {[0, 60, 120, 180, 240, 300].map((angle, i) => (
-        <mesh
-          key={i}
-          rotation={[0, 0, Math.PI / 2]}
-          position={[
-            Math.sin((angle * Math.PI) / 180) * 0.12,
-            0.14,
-            Math.cos((angle * Math.PI) / 180) * 0.12,
-          ]}
-        >
-          <boxGeometry args={[0.02, 0.02, 0.2]} />
-          <primitive object={rimMaterial} attach="material" />
-        </mesh>
-      ))}
-    </group>
-  );
+    const headlightMaterial = new THREE.MeshStandardMaterial({
+      color: '#ffffff',
+      emissive: '#ffffff',
+      emissiveIntensity: 2,
+    });
 
-  return (
-    <group ref={meshRef} scale={1.2}>
-      {/* Main body - lower section */}
-      <mesh position={[0, 0.35, 0]} castShadow receiveShadow>
-        <boxGeometry args={[2.8, 0.5, 1.3]} />
-        <primitive object={bodyMaterial} attach="material" />
-      </mesh>
+    const taillightMaterial = new THREE.MeshStandardMaterial({
+      color: '#ff0000',
+      emissive: '#ff0000',
+      emissiveIntensity: 1.5,
+    });
 
-      {/* Front hood - sloped */}
-      <mesh position={[1.1, 0.45, 0]} rotation={[0, 0, -0.15]} castShadow>
-        <boxGeometry args={[0.8, 0.3, 1.25]} />
-        <primitive object={bodyMaterial} attach="material" />
-      </mesh>
+    // Main body - lower section
+    const bodyGeometry = new THREE.BoxGeometry(2.8, 0.5, 1.3);
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    body.position.y = 0.35;
+    body.castShadow = true;
+    body.receiveShadow = true;
+    carGroup.add(body);
 
-      {/* Rear trunk - sloped */}
-      <mesh position={[-1.0, 0.45, 0]} rotation={[0, 0, 0.1]} castShadow>
-        <boxGeometry args={[0.7, 0.35, 1.25]} />
-        <primitive object={bodyMaterial} attach="material" />
-      </mesh>
+    // Front hood
+    const hoodGeometry = new THREE.BoxGeometry(0.8, 0.3, 1.25);
+    const hood = new THREE.Mesh(hoodGeometry, bodyMaterial);
+    hood.position.set(1.1, 0.45, 0);
+    hood.rotation.z = -0.15;
+    hood.castShadow = true;
+    carGroup.add(hood);
 
-      {/* Cabin/roof */}
-      <mesh position={[0.1, 0.75, 0]} castShadow>
-        <boxGeometry args={[1.4, 0.45, 1.2]} />
-        <primitive object={bodyMaterial} attach="material" />
-      </mesh>
+    // Rear trunk
+    const trunkGeometry = new THREE.BoxGeometry(0.7, 0.35, 1.25);
+    const trunk = new THREE.Mesh(trunkGeometry, bodyMaterial);
+    trunk.position.set(-1.0, 0.45, 0);
+    trunk.rotation.z = 0.1;
+    trunk.castShadow = true;
+    carGroup.add(trunk);
 
-      {/* Front windshield */}
-      <mesh position={[0.75, 0.75, 0]} rotation={[0, 0, -0.45]} castShadow>
-        <boxGeometry args={[0.6, 0.02, 1.1]} />
-        <primitive object={glassMaterial} attach="material" />
-      </mesh>
+    // Cabin/roof
+    const cabinGeometry = new THREE.BoxGeometry(1.4, 0.45, 1.2);
+    const cabin = new THREE.Mesh(cabinGeometry, bodyMaterial);
+    cabin.position.set(0.1, 0.75, 0);
+    cabin.castShadow = true;
+    carGroup.add(cabin);
 
-      {/* Rear windshield */}
-      <mesh position={[-0.55, 0.75, 0]} rotation={[0, 0, 0.35]} castShadow>
-        <boxGeometry args={[0.5, 0.02, 1.1]} />
-        <primitive object={glassMaterial} attach="material" />
-      </mesh>
+    // Front windshield
+    const frontWindowGeometry = new THREE.BoxGeometry(0.6, 0.02, 1.1);
+    const frontWindow = new THREE.Mesh(frontWindowGeometry, glassMaterial);
+    frontWindow.position.set(0.75, 0.75, 0);
+    frontWindow.rotation.z = -0.45;
+    carGroup.add(frontWindow);
 
-      {/* Side windows */}
-      <mesh position={[0.15, 0.8, 0.59]} castShadow>
-        <boxGeometry args={[1.2, 0.35, 0.02]} />
-        <primitive object={glassMaterial} attach="material" />
-      </mesh>
-      <mesh position={[0.15, 0.8, -0.59]} castShadow>
-        <boxGeometry args={[1.2, 0.35, 0.02]} />
-        <primitive object={glassMaterial} attach="material" />
-      </mesh>
+    // Rear windshield
+    const rearWindowGeometry = new THREE.BoxGeometry(0.5, 0.02, 1.1);
+    const rearWindow = new THREE.Mesh(rearWindowGeometry, glassMaterial);
+    rearWindow.position.set(-0.55, 0.75, 0);
+    rearWindow.rotation.z = 0.35;
+    carGroup.add(rearWindow);
 
-      {/* Hood stripe (secondary color) */}
-      <mesh position={[0.6, 0.62, 0]} castShadow>
-        <boxGeometry args={[1.5, 0.02, 0.15]} />
-        <primitive object={stripeMaterial} attach="material" />
-      </mesh>
+    // Side windows
+    const sideWindowGeometry = new THREE.BoxGeometry(1.2, 0.35, 0.02);
+    const sideWindowLeft = new THREE.Mesh(sideWindowGeometry, glassMaterial);
+    sideWindowLeft.position.set(0.15, 0.8, 0.59);
+    carGroup.add(sideWindowLeft);
 
-      {/* Side stripe */}
-      <mesh position={[0, 0.35, 0.66]} castShadow>
-        <boxGeometry args={[2.4, 0.08, 0.02]} />
-        <primitive object={stripeMaterial} attach="material" />
-      </mesh>
-      <mesh position={[0, 0.35, -0.66]} castShadow>
-        <boxGeometry args={[2.4, 0.08, 0.02]} />
-        <primitive object={stripeMaterial} attach="material" />
-      </mesh>
+    const sideWindowRight = new THREE.Mesh(sideWindowGeometry, glassMaterial);
+    sideWindowRight.position.set(0.15, 0.8, -0.59);
+    carGroup.add(sideWindowRight);
 
-      {/* Headlights */}
-      <mesh position={[1.4, 0.35, 0.4]} castShadow>
-        <boxGeometry args={[0.05, 0.12, 0.25]} />
-        <primitive object={headlightMaterial} attach="material" />
-      </mesh>
-      <mesh position={[1.4, 0.35, -0.4]} castShadow>
-        <boxGeometry args={[0.05, 0.12, 0.25]} />
-        <primitive object={headlightMaterial} attach="material" />
-      </mesh>
+    // Hood stripe
+    const hoodStripeGeometry = new THREE.BoxGeometry(1.5, 0.02, 0.15);
+    const hoodStripe = new THREE.Mesh(hoodStripeGeometry, stripeMaterial);
+    hoodStripe.position.set(0.6, 0.62, 0);
+    carGroup.add(hoodStripe);
 
-      {/* Taillights */}
-      <mesh position={[-1.35, 0.4, 0.45]} castShadow>
-        <boxGeometry args={[0.05, 0.1, 0.35]} />
-        <primitive object={taillightMaterial} attach="material" />
-      </mesh>
-      <mesh position={[-1.35, 0.4, -0.45]} castShadow>
-        <boxGeometry args={[0.05, 0.1, 0.35]} />
-        <primitive object={taillightMaterial} attach="material" />
-      </mesh>
+    // Side stripes
+    const sideStripeGeometry = new THREE.BoxGeometry(2.4, 0.08, 0.02);
+    const sideStripeLeft = new THREE.Mesh(sideStripeGeometry, stripeMaterial);
+    sideStripeLeft.position.set(0, 0.35, 0.66);
+    carGroup.add(sideStripeLeft);
 
-      {/* Front grille */}
-      <mesh position={[1.41, 0.25, 0]}>
-        <boxGeometry args={[0.02, 0.2, 0.6]} />
-        <meshStandardMaterial color="#111111" metalness={0.5} roughness={0.5} />
-      </mesh>
+    const sideStripeRight = new THREE.Mesh(sideStripeGeometry, stripeMaterial);
+    sideStripeRight.position.set(0, 0.35, -0.66);
+    carGroup.add(sideStripeRight);
 
-      {/* Side mirrors */}
-      <mesh position={[0.6, 0.7, 0.7]} castShadow>
-        <boxGeometry args={[0.15, 0.08, 0.08]} />
-        <primitive object={bodyMaterial} attach="material" />
-      </mesh>
-      <mesh position={[0.6, 0.7, -0.7]} castShadow>
-        <boxGeometry args={[0.15, 0.08, 0.08]} />
-        <primitive object={bodyMaterial} attach="material" />
-      </mesh>
+    // Headlights
+    const headlightGeometry = new THREE.BoxGeometry(0.05, 0.12, 0.25);
+    const headlightLeft = new THREE.Mesh(headlightGeometry, headlightMaterial);
+    headlightLeft.position.set(1.4, 0.35, 0.4);
+    carGroup.add(headlightLeft);
 
-      {/* Spoiler (if equipped) */}
-      {mods?.spoiler && mods.spoiler !== 'none' && (
-        <group position={[-1.15, 0.85, 0]}>
-          {/* Spoiler wing */}
-          <mesh castShadow>
-            <boxGeometry args={[0.25, 0.05, 1.2]} />
-            <primitive object={stripeMaterial} attach="material" />
-          </mesh>
-          {/* Spoiler stands */}
-          <mesh position={[0, -0.15, 0.4]} castShadow>
-            <boxGeometry args={[0.08, 0.25, 0.05]} />
-            <primitive object={stripeMaterial} attach="material" />
-          </mesh>
-          <mesh position={[0, -0.15, -0.4]} castShadow>
-            <boxGeometry args={[0.08, 0.25, 0.05]} />
-            <primitive object={stripeMaterial} attach="material" />
-          </mesh>
-        </group>
-      )}
+    const headlightRight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+    headlightRight.position.set(1.4, 0.35, -0.4);
+    carGroup.add(headlightRight);
 
-      {/* Neon underglow */}
-      {neonMaterial && (
-        <>
-          {/* Front neon */}
-          <mesh position={[1.2, 0.08, 0]}>
-            <boxGeometry args={[0.1, 0.03, 1.0]} />
-            <primitive object={neonMaterial} attach="material" />
-          </mesh>
-          {/* Rear neon */}
-          <mesh position={[-1.2, 0.08, 0]}>
-            <boxGeometry args={[0.1, 0.03, 1.0]} />
-            <primitive object={neonMaterial} attach="material" />
-          </mesh>
-          {/* Side neons */}
-          <mesh position={[0, 0.08, 0.65]}>
-            <boxGeometry args={[2.2, 0.03, 0.1]} />
-            <primitive object={neonMaterial} attach="material" />
-          </mesh>
-          <mesh position={[0, 0.08, -0.65]}>
-            <boxGeometry args={[2.2, 0.03, 0.1]} />
-            <primitive object={neonMaterial} attach="material" />
-          </mesh>
-          {/* Neon light effect on ground */}
-          <pointLight
-            position={[0, 0.1, 0]}
-            color={neonColor}
-            intensity={2}
-            distance={3}
-          />
-        </>
-      )}
+    // Taillights
+    const taillightGeometry = new THREE.BoxGeometry(0.05, 0.1, 0.35);
+    const taillightLeft = new THREE.Mesh(taillightGeometry, taillightMaterial);
+    taillightLeft.position.set(-1.35, 0.4, 0.45);
+    carGroup.add(taillightLeft);
 
-      {/* Wheels */}
-      <Wheel position={[0.9, 0.1, 0.7]} ref={(el) => (wheelsRef.current[0] = el)} />
-      <Wheel position={[0.9, 0.1, -0.7]} ref={(el) => (wheelsRef.current[1] = el)} />
-      <Wheel position={[-0.9, 0.1, 0.7]} ref={(el) => (wheelsRef.current[2] = el)} />
-      <Wheel position={[-0.9, 0.1, -0.7]} ref={(el) => (wheelsRef.current[3] = el)} />
-    </group>
-  );
-};
+    const taillightRight = new THREE.Mesh(taillightGeometry, taillightMaterial);
+    taillightRight.position.set(-1.35, 0.4, -0.45);
+    carGroup.add(taillightRight);
 
-// Ground Grid component for NFS Unbound style
-const GroundGrid = () => {
-  return (
-    <group position={[0, -0.01, 0]}>
-      <gridHelper
-        args={[20, 40, '#22c55e', '#1a1a1a']}
-        rotation={[0, 0, 0]}
-      />
-    </group>
-  );
-};
+    // Front grille
+    const grilleGeometry = new THREE.BoxGeometry(0.02, 0.2, 0.6);
+    const grilleMaterial = new THREE.MeshStandardMaterial({ color: '#111111', metalness: 0.5, roughness: 0.5 });
+    const grille = new THREE.Mesh(grilleGeometry, grilleMaterial);
+    grille.position.set(1.41, 0.25, 0);
+    carGroup.add(grille);
 
-// Loading spinner
-const Loader = () => (
-  <div className="absolute inset-0 flex items-center justify-center bg-zinc-900">
-    <div className="flex flex-col items-center">
-      <div className="w-12 h-12 border-4 border-neon-green border-t-transparent rounded-full animate-spin" />
-      <p className="mt-4 text-zinc-400 font-mono text-sm">Loading 3D Model...</p>
-    </div>
-  </div>
-);
+    // Side mirrors
+    const mirrorGeometry = new THREE.BoxGeometry(0.15, 0.08, 0.08);
+    const mirrorLeft = new THREE.Mesh(mirrorGeometry, bodyMaterial);
+    mirrorLeft.position.set(0.6, 0.7, 0.7);
+    carGroup.add(mirrorLeft);
 
-// Main 3D Viewer Component
-const Car3DViewer = ({
-  color = '#22c55e',
-  secondaryColor = '#000000',
-  mods = {},
-  height = '300px',
-}) => {
+    const mirrorRight = new THREE.Mesh(mirrorGeometry, bodyMaterial);
+    mirrorRight.position.set(0.6, 0.7, -0.7);
+    carGroup.add(mirrorRight);
+
+    // Spoiler (if equipped)
+    if (mods?.spoiler && mods.spoiler !== 'none') {
+      const spoilerGroup = new THREE.Group();
+      
+      const spoilerWingGeometry = new THREE.BoxGeometry(0.25, 0.05, 1.2);
+      const spoilerWing = new THREE.Mesh(spoilerWingGeometry, stripeMaterial);
+      spoilerGroup.add(spoilerWing);
+
+      const spoilerStandGeometry = new THREE.BoxGeometry(0.08, 0.25, 0.05);
+      const spoilerStandLeft = new THREE.Mesh(spoilerStandGeometry, stripeMaterial);
+      spoilerStandLeft.position.set(0, -0.15, 0.4);
+      spoilerGroup.add(spoilerStandLeft);
+
+      const spoilerStandRight = new THREE.Mesh(spoilerStandGeometry, stripeMaterial);
+      spoilerStandRight.position.set(0, -0.15, -0.4);
+      spoilerGroup.add(spoilerStandRight);
+
+      spoilerGroup.position.set(-1.15, 0.85, 0);
+      carGroup.add(spoilerGroup);
+    }
+
+    // Neon underglow
+    if (neonColor) {
+      const neonMaterial = new THREE.MeshStandardMaterial({
+        color: neonColor,
+        emissive: neonColor,
+        emissiveIntensity: 3,
+        transparent: true,
+        opacity: 0.8,
+      });
+
+      const neonGeometry = new THREE.BoxGeometry(0.1, 0.03, 1.0);
+      const frontNeon = new THREE.Mesh(neonGeometry, neonMaterial);
+      frontNeon.position.set(1.2, 0.08, 0);
+      carGroup.add(frontNeon);
+
+      const rearNeon = new THREE.Mesh(neonGeometry, neonMaterial);
+      rearNeon.position.set(-1.2, 0.08, 0);
+      carGroup.add(rearNeon);
+
+      const sideNeonGeometry = new THREE.BoxGeometry(2.2, 0.03, 0.1);
+      const sideNeonLeft = new THREE.Mesh(sideNeonGeometry, neonMaterial);
+      sideNeonLeft.position.set(0, 0.08, 0.65);
+      carGroup.add(sideNeonLeft);
+
+      const sideNeonRight = new THREE.Mesh(sideNeonGeometry, neonMaterial);
+      sideNeonRight.position.set(0, 0.08, -0.65);
+      carGroup.add(sideNeonRight);
+
+      // Neon point light
+      const neonLight = new THREE.PointLight(neonColor, 2, 3);
+      neonLight.position.set(0, 0.1, 0);
+      carGroup.add(neonLight);
+    }
+
+    // Wheels
+    const createWheel = (position) => {
+      const wheelGroup = new THREE.Group();
+      
+      // Tire
+      const tireGeometry = new THREE.CylinderGeometry(0.35, 0.35, 0.25, 32);
+      const tire = new THREE.Mesh(tireGeometry, wheelMaterial);
+      tire.rotation.z = Math.PI / 2;
+      wheelGroup.add(tire);
+      
+      // Rim
+      const rimGeometry = new THREE.CylinderGeometry(0.22, 0.22, 0.26, 16);
+      const rim = new THREE.Mesh(rimGeometry, rimMaterial);
+      rim.rotation.z = Math.PI / 2;
+      wheelGroup.add(rim);
+
+      // Rim spokes
+      for (let i = 0; i < 6; i++) {
+        const angle = (i * 60 * Math.PI) / 180;
+        const spokeGeometry = new THREE.BoxGeometry(0.02, 0.02, 0.2);
+        const spoke = new THREE.Mesh(spokeGeometry, rimMaterial);
+        spoke.position.set(
+          Math.sin(angle) * 0.12,
+          0.14,
+          Math.cos(angle) * 0.12
+        );
+        spoke.rotation.z = Math.PI / 2;
+        wheelGroup.add(spoke);
+      }
+
+      wheelGroup.position.set(...position);
+      wheelsRef.current.push(wheelGroup);
+      return wheelGroup;
+    };
+
+    carGroup.add(createWheel([0.9, 0.1, 0.7]));
+    carGroup.add(createWheel([0.9, 0.1, -0.7]));
+    carGroup.add(createWheel([-0.9, 0.1, 0.7]));
+    carGroup.add(createWheel([-0.9, 0.1, -0.7]));
+
+    // Scale the car
+    carGroup.scale.set(1.2, 1.2, 1.2);
+    
+    scene.add(carGroup);
+  };
+
   return (
     <div
+      ref={containerRef}
       style={{ height, width: '100%' }}
       className="relative bg-gradient-to-b from-zinc-900 to-zinc-950 overflow-hidden"
       data-testid="car-3d-viewer"
     >
-      <Suspense fallback={<Loader />}>
-        <Canvas shadows dpr={[1, 2]}>
-          <PerspectiveCamera makeDefault position={[4, 2, 4]} fov={45} />
-          
-          {/* Lighting */}
-          <ambientLight intensity={0.3} />
-          <spotLight
-            position={[10, 10, 10]}
-            angle={0.15}
-            penumbra={1}
-            intensity={1}
-            castShadow
-            shadow-mapSize={[2048, 2048]}
-          />
-          <spotLight
-            position={[-10, 10, -10]}
-            angle={0.15}
-            penumbra={1}
-            intensity={0.5}
-          />
-          
-          {/* Key light for car */}
-          <directionalLight
-            position={[5, 5, 5]}
-            intensity={1}
-            castShadow
-          />
-          
-          {/* Rim light */}
-          <pointLight position={[-5, 3, -5]} intensity={0.5} color="#06b6d4" />
-
-          {/* Environment for reflections */}
-          <Environment preset="city" />
-
-          {/* Car */}
-          <Float
-            speed={1.5}
-            rotationIntensity={0.1}
-            floatIntensity={0.3}
-          >
-            <SportsCar
-              color={color}
-              secondaryColor={secondaryColor}
-              mods={mods}
-            />
-          </Float>
-
-          {/* Ground shadow */}
-          <ContactShadows
-            position={[0, -0.01, 0]}
-            opacity={0.6}
-            scale={10}
-            blur={2}
-            far={4}
-          />
-
-          {/* Grid */}
-          <GroundGrid />
-
-          {/* Controls */}
-          <OrbitControls
-            enablePan={false}
-            enableZoom={true}
-            minPolarAngle={Math.PI / 6}
-            maxPolarAngle={Math.PI / 2.2}
-            minDistance={3}
-            maxDistance={8}
-            autoRotate
-            autoRotateSpeed={0.5}
-          />
-        </Canvas>
-      </Suspense>
-
       {/* Corner accents */}
-      <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-neon-green/30 pointer-events-none" />
-      <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-neon-green/30 pointer-events-none" />
-      <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-neon-green/30 pointer-events-none" />
-      <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-neon-green/30 pointer-events-none" />
+      <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-neon-green/30 pointer-events-none z-10" />
+      <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-neon-green/30 pointer-events-none z-10" />
+      <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-neon-green/30 pointer-events-none z-10" />
+      <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-neon-green/30 pointer-events-none z-10" />
 
       {/* Instructions overlay */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center pointer-events-none">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center pointer-events-none z-10">
         <p className="text-xs text-zinc-500 font-mono uppercase tracking-wider">
           Drag to rotate • Scroll to zoom
         </p>
