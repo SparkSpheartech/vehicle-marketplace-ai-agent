@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import Avatar3DViewer from '@/components/Avatar3DViewer';
 import { 
   Car, MapPin, Users, Settings, ArrowLeft, 
   Save, User
