@@ -1871,7 +1871,7 @@ async def discover_users(user: dict = Depends(get_current_user)):
 
 @api_router.get("/")
 async def root():
-    return {"message": "Forza Community API", "version": "3.0.0"}
+    return {"message": "Kynetik API", "version": "3.0.0"}
 
 # Include the router in the main app
 app.include_router(api_router)

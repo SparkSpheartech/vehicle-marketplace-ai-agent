@@ -277,7 +277,7 @@ const Dashboard = () => {
                   <Car className="w-6 h-6 text-black" />
                 </div>
                 <span className="font-unbounded font-bold text-lg tracking-tight">
-                  FORZA<span className="text-neon-green">COMM</span>
+                  KYNET<span className="text-neon-green">IK</span>
                 </span>
               </div>
             </div>

@@ -400,7 +400,7 @@ const SquadPage = () => {
                                 return actions.order.create({
                                   purchase_units: [{
                                     amount: { value: '5.00' },
-                                    description: 'ForzaCommunity Squad Creation'
+                                    description: 'Kynetik Squad Creation'
                                   }]
                                 });
                               }}

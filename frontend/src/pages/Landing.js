@@ -60,7 +60,7 @@ const Landing = () => {
               <div className="w-10 h-10 bg-neon-green flex items-center justify-center">
                 <Car className="w-6 h-6 text-black" />
               </div>
-              <span className="font-unbounded font-bold text-xl tracking-tight">FORZA<span className="text-neon-green">COMMUNITY</span></span>
+              <span className="font-unbounded font-bold text-xl tracking-tight">KYNET<span className="text-neon-green">IK</span></span>
             </div>
             <Button
               onClick={login}
@@ -180,9 +180,9 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Car className="w-5 h-5 text-neon-green" />
-            <span className="font-unbounded font-bold text-sm">FORZACOMMUNITY</span>
+            <span className="font-unbounded font-bold text-sm">KYNETIK</span>
           </div>
-          <p className="text-zinc-500 text-sm">© 2025 ForzaCommunity. Built for the car community.</p>
+          <p className="text-zinc-500 text-sm">© 2025 Kynetik. Built for the car community.</p>
         </div>
       </footer>
     </div>
