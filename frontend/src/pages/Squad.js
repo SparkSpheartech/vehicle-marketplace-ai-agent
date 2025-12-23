@@ -7,9 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import SquadChat from '@/components/SquadChat';
+import useWebSocket from '@/hooks/useWebSocket';
 import { 
   Users, Shield, Crown, UserPlus, LogOut, 
-  Check, X, ArrowLeft, DollarSign, Settings
+  Check, X, ArrowLeft, DollarSign, Settings,
+  MessageSquare
 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
