@@ -247,3 +247,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Implemented 3D car viewer using vanilla Three.js with OrbitControls. The component shows a procedural sports car model with customizable colors, neon underglow based on mods, spoiler option, and rotating wheels. Added API keys to backend .env (API_NINJAS_KEY and PAYPAL_CLIENT_ID). Need to test the 3D viewer in the Garage page after Google OAuth login."
+  - agent: "main"
+    message: "Updated Car3DViewer to load real GLB car models from public repositories. Models include Ferrari 458 from Three.js examples, BMW M4 F82 and BMW 1M from harmasctl repo, CarConcept from Khronos, and racing chassis from pmndrs racing game. Cars are mapped based on make (e.g., Ferrari->Ferrari model, BMW->BMW M4, etc.). The viewer includes GLTFLoader with DRACO support, neon underglow effects, and studio lighting setup. Also created Avatar3DViewer for Mixamo-style 3D avatars with customizable body parts, hair, eyes, outfit, accessories."
