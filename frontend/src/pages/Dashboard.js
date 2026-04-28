@@ -1,633 +1,246 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import Speedometer from '@/components/Speedometer';
-import MusicSelector from '@/components/MusicSelector';
 import { 
   Car, MapPin, Users, Bell, Settings, LogOut, 
-  Menu, X, ChevronRight, UserPlus, Gauge, Shield, Music2
+  Menu, X, ChevronRight, UserPlus, Gauge, Shield, Music2,
+  Radar, Route, MilitaryTech
 } from 'lucide-react';
-import 'leaflet/dist/leaflet.css';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-// Fix for default marker icons in React-Leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
-
-// Custom user marker
-const createUserIcon = (picture, isCurrentUser = false, hasMusic = false) => {
-  const borderColor = isCurrentUser ? '#22c55e' : '#06b6d4';
-  const musicIndicator = hasMusic ? `
-    <div style="
-      position: absolute;
-      bottom: -4px;
-      right: -4px;
-      width: 16px;
-      height: 16px;
-      background: #22c55e;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 8px;
-    ">🎵</div>
-  ` : '';
-  
-  return L.divIcon({
-    className: 'custom-marker',
-    html: `
-      <div style="
-        position: relative;
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        border: 3px solid ${borderColor};
-        box-shadow: 0 0 15px ${borderColor}80;
-        overflow: hidden;
-        background: #18181b;
-      ">
-        <img src="${picture || 'https://via.placeholder.com/44'}" 
-             style="width: 100%; height: 100%; object-fit: cover;" 
-             onerror="this.src='https://via.placeholder.com/44'" />
-        ${musicIndicator}
-      </div>
-    `,
-    iconSize: [44, 44],
-    iconAnchor: [22, 22],
-    popupAnchor: [0, -22],
-  });
-};
-
-// Component to recenter map
-const RecenterMap = ({ position }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (position) {
-      map.setView(position, map.getZoom());
-    }
-  }, [position, map]);
-  return null;
-};
 
 const Dashboard = () => {
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [nearbyUsers, setNearbyUsers] = useState([]);
   const [currentLobby, setCurrentLobby] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [incomingRequests, setIncomingRequests] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showSpeedometer, setShowSpeedometer] = useState(true);
-  const [currentSpeed, setCurrentSpeed] = useState(0);
   const [tripStats, setTripStats] = useState({
-    top_speed: 0,
-    total_distance: 0,
+    top_speed: user?.top_speed || 0,
+    total_distance: user?.total_miles || 0,
     avg_speed: 0,
     trip_start: null
   });
-  const [currentSong, setCurrentSong] = useState(user?.current_song || null);
-  const [squadInvites, setSquadInvites] = useState([]);
+  const [lobbies, setLobbies] = useState([]);
 
-  // Get user's current location with speed
-  useEffect(() => {
-    if (navigator.geolocation) {
-      const watchId = navigator.geolocation.watchPosition(
-        async (position) => {
-          const { latitude, longitude, speed } = position.coords;
-          setUserLocation([latitude, longitude]);
-          
-          // Convert speed from m/s to mph
-          const speedMph = speed ? speed * 2.237 : 0;
-          setCurrentSpeed(speedMph);
-          
-          // Update location on server with speed
-          try {
-            const response = await axios.post(
-              `${API}/location/update`,
-              { 
-                lat: latitude, 
-                lng: longitude,
-                speed: speedMph,
-                heading: position.coords.heading || 0
-              },
-              { withCredentials: true }
-            );
-            
-            if (response.data.trip_stats) {
-              setTripStats(response.data.trip_stats);
-            }
-          } catch (error) {
-            console.error('Failed to update location:', error);
-          }
-        },
-        (error) => {
-          console.error('Geolocation error:', error);
-          // Default to Los Angeles if location denied
-          setUserLocation([34.0522, -118.2437]);
-        },
-        { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
-      );
-
-      return () => navigator.geolocation.clearWatch(watchId);
-    }
-  }, []);
-
-  // Fetch lobby info and nearby users
-  const fetchNearbyUsers = useCallback(async () => {
-    if (!user?.current_lobby) return;
-    
+  // Fetch data
+  const fetchData = useCallback(async () => {
     try {
-      const response = await axios.get(
-        `${API}/lobbies/${user.current_lobby}/users`,
-        { withCredentials: true }
-      );
-      setNearbyUsers(response.data.filter(u => u.user_id !== user.user_id));
+      const [lobbiesRes, reqRes] = await Promise.all([
+        axios.get(`${API}/lobbies`, { withCredentials: true }),
+        axios.get(`${API}/requests/incoming`, { withCredentials: true })
+      ]);
+      setLobbies(lobbiesRes.data);
+      setIncomingRequests(reqRes.data);
+      
+      if (user?.current_lobby) {
+        const lobby = lobbiesRes.data.find(l => l.lobby_id === user.current_lobby);
+        setCurrentLobby(lobby);
+        
+        const usersRes = await axios.get(`${API}/lobbies/${user.current_lobby}/users`, { withCredentials: true });
+        setNearbyUsers(usersRes.data.filter(u => u.user_id !== user.user_id));
+      }
     } catch (error) {
-      console.error('Failed to fetch nearby users:', error);
+      console.error('Failed to fetch dashboard data:', error);
     }
   }, [user?.current_lobby, user?.user_id]);
 
-  // Fetch incoming requests
-  const fetchRequests = useCallback(async () => {
-    try {
-      const [reqRes, invRes] = await Promise.all([
-        axios.get(`${API}/requests/incoming`, { withCredentials: true }),
-        axios.get(`${API}/squads/invites`, { withCredentials: true })
-      ]);
-      setIncomingRequests(reqRes.data);
-      setSquadInvites(invRes.data);
-    } catch (error) {
-      console.error('Failed to fetch requests:', error);
-    }
-  }, []);
-
-  // Fetch lobby details
-  const fetchLobbyDetails = useCallback(async () => {
-    if (!user?.current_lobby) {
-      setCurrentLobby(null);
-      return;
-    }
-    
-    try {
-      const response = await axios.get(`${API}/lobbies`, { withCredentials: true });
-      const lobby = response.data.find(l => l.lobby_id === user.current_lobby);
-      setCurrentLobby(lobby);
-    } catch (error) {
-      console.error('Failed to fetch lobby:', error);
-    }
-  }, [user?.current_lobby]);
-
   useEffect(() => {
-    fetchNearbyUsers();
-    fetchRequests();
-    fetchLobbyDetails();
-    
-    // Poll for updates every 15 seconds
-    const interval = setInterval(() => {
-      fetchNearbyUsers();
-      fetchRequests();
-    }, 15000);
-
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
-  }, [fetchNearbyUsers, fetchRequests, fetchLobbyDetails]);
-
-  const handleSendRequest = async (toUserId) => {
-    try {
-      await axios.post(
-        `${API}/requests`,
-        { to_user_id: toUserId, message: "Hey! Nice ride, let's connect!" },
-        { withCredentials: true }
-      );
-      toast.success('Request sent!');
-      setSelectedUser(null);
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to send request');
-    }
-  };
-
-  const handleLeaveLobby = async () => {
-    try {
-      await axios.post(`${API}/lobbies/leave`, {}, { withCredentials: true });
-      updateUser({ ...user, current_lobby: null });
-      setCurrentLobby(null);
-      setNearbyUsers([]);
-      toast.success('Left lobby');
-    } catch (error) {
-      toast.error('Failed to leave lobby');
-    }
-  };
-
-  const handleResetTrip = async () => {
-    try {
-      const response = await axios.post(`${API}/location/reset-trip`, {}, { withCredentials: true });
-      setTripStats(response.data.trip_stats);
-      toast.success('Trip reset!');
-    } catch (error) {
-      toast.error('Failed to reset trip');
-    }
-  };
-
-  const navItems = [
-    { icon: <MapPin className="w-5 h-5" />, label: 'Map', path: '/dashboard', active: true },
-    { icon: <Users className="w-5 h-5" />, label: 'Lobbies', path: '/lobbies' },
-    { icon: <Shield className="w-5 h-5" />, label: 'Squad', path: '/squad' },
-    { icon: <Car className="w-5 h-5" />, label: 'Garage', path: '/garage' },
-    { icon: <Settings className="w-5 h-5" />, label: 'Profile', path: '/profile' },
-  ];
-
-  const totalNotifications = incomingRequests.length + squadInvites.length;
+  }, [fetchData]);
 
   return (
-    <div className="h-screen bg-void flex overflow-hidden">
-      {/* Mobile menu button */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-[1001] glass-panel p-3"
-        data-testid="mobile-menu-btn"
-      >
-        {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </button>
-
-      {/* Sidebar */}
-      <AnimatePresence>
-        {(sidebarOpen || window.innerWidth >= 1024) && (
-          <motion.aside
-            initial={{ x: -280 }}
-            animate={{ x: 0 }}
-            exit={{ x: -280 }}
-            className="fixed lg:relative z-[1000] w-[280px] h-full glass-panel border-r border-white/10 flex flex-col"
-          >
-            {/* Logo */}
-            <div className="p-6 border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-neon-green flex items-center justify-center">
-                  <Car className="w-6 h-6 text-black" />
-                </div>
-                <span className="font-unbounded font-bold text-lg tracking-tight">
-                  KYNET<span className="text-neon-green">IK</span>
-                </span>
-              </div>
-            </div>
-
-            {/* User info */}
-            <div className="p-6 border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full border-2 border-neon-green overflow-hidden">
-                  <img
-                    src={user?.picture || 'https://via.placeholder.com/48'}
-                    alt={user?.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold truncate">{user?.name}</p>
-                  <p className="text-xs text-zinc-500 font-mono uppercase tracking-wider">
-                    {currentLobby ? `${currentLobby.city}, ${currentLobby.state}` : 'No Lobby'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Nav items */}
-            <nav className="flex-1 p-4 space-y-2">
-              {navItems.map((item) => (
-                <button
-                  key={item.path}
-                  onClick={() => {
-                    navigate(item.path);
-                    setSidebarOpen(false);
-                  }}
-                  data-testid={`nav-${item.label.toLowerCase()}`}
-                  className={`w-full flex items-center gap-3 px-4 py-3 font-mono text-sm uppercase tracking-wider transition-colors duration-200 ${
-                    item.active 
-                      ? 'bg-neon-green/10 text-neon-green border-l-2 border-neon-green' 
-                      : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  {item.icon}
-                  {item.label}
-                </button>
-              ))}
-            </nav>
-
-            {/* Music Selector */}
-            <div className="p-4 border-t border-white/10">
-              <MusicSelector
-                currentSong={currentSong}
-                onSongUpdate={setCurrentSong}
-                onClear={() => setCurrentSong(null)}
-              />
-            </div>
-
-            {/* Requests notification */}
-            <div className="p-4 border-t border-white/10">
-              <button
-                onClick={() => navigate('/requests')}
-                data-testid="requests-btn"
-                className="w-full flex items-center justify-between px-4 py-3 glass-panel hover:border-neon-green/30 transition-colors duration-200"
-              >
-                <div className="flex items-center gap-3">
-                  <Bell className="w-5 h-5 text-neon-green" />
-                  <span className="font-mono text-sm uppercase tracking-wider">Requests</span>
-                </div>
-                {totalNotifications > 0 && (
-                  <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                    {totalNotifications}
-                  </span>
-                )}
-              </button>
-            </div>
-
-            {/* Logout */}
-            <div className="p-4 border-t border-white/10">
-              <button
-                onClick={logout}
-                data-testid="logout-btn"
-                className="w-full flex items-center gap-3 px-4 py-3 text-zinc-400 hover:text-red-400 transition-colors duration-200"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="font-mono text-sm uppercase tracking-wider">Logout</span>
-              </button>
-            </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
-
-      {/* Main content - Map */}
-      <main className="flex-1 relative">
-        {/* Map */}
-        {userLocation && (
-          <MapContainer
-            center={userLocation}
-            zoom={13}
-            className="h-full w-full"
-            zoomControl={false}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            />
-            <RecenterMap position={userLocation} />
-            
-            {/* Current user marker */}
-            <Marker
-              position={userLocation}
-              icon={createUserIcon(user?.picture, true, !!currentSong)}
+    <div className="min-h-screen bg-background text-on-background font-body-base pb-[100px] md:pb-0">
+      
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+        {/* Hero: Session Entry */}
+        <section className="relative w-full aspect-[21/9] md:aspect-[16/5] rounded-lg overflow-hidden group shadow-2xl">
+          <img 
+            alt="Session Background" 
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-105" 
+            src="https://images.unsplash.com/photo-1542362567-b05503f3f7f4?q=80&w=2070&auto=format&fit=crop"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+          <div className="absolute inset-0 flex flex-col justify-end p-8">
+            <p className="font-label-caps text-on-surface-variant uppercase mb-2 tracking-widest text-xs">STATUS: {currentLobby ? 'ACTIVE' : 'STANDBY'}</p>
+            <h2 className="font-display-lg text-white text-4xl md:text-6xl uppercase drop-shadow-lg mb-6 tracking-tighter italic">ENTER WORLD</h2>
+            <Button 
+              onClick={() => navigate('/lobbies')}
+              className="bg-primary-fixed text-on-primary font-label-caps px-8 py-6 h-auto rounded-none hover:bg-surface-tint hover:shadow-[0_0_20px_rgba(204,255,0,0.5)] transition-all uppercase w-max tracking-widest flex items-center gap-3"
             >
-              <Popup className="custom-popup">
-                <div className="bg-card p-3 rounded-none min-w-[200px]">
-                  <p className="font-unbounded font-bold text-sm">{user?.name}</p>
-                  <p className="text-xs text-neon-green font-mono">YOU</p>
-                  {currentSong && (
-                    <p className="text-xs text-zinc-400 mt-1">🎵 {currentSong.name}</p>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
-
-            {/* Other users markers */}
-            {nearbyUsers.map((u) => (
-              u.location && (
-                <Marker
-                  key={u.user_id}
-                  position={[u.location.lat, u.location.lng]}
-                  icon={createUserIcon(u.picture, false, !!u.current_song)}
-                  eventHandlers={{
-                    click: () => setSelectedUser(u)
-                  }}
-                >
-                  <Popup>
-                    <div className="bg-card p-3 rounded-none min-w-[200px]">
-                      <p className="font-unbounded font-bold text-sm">{u.name}</p>
-                      {u.primary_car && (
-                        <p className="text-xs text-zinc-400">
-                          {u.primary_car.year} {u.primary_car.make} {u.primary_car.model}
-                        </p>
-                      )}
-                      {u.current_song && (
-                        <p className="text-xs text-green-500 mt-1">🎵 {u.current_song.name}</p>
-                      )}
-                    </div>
-                  </Popup>
-                </Marker>
-              )
-            ))}
-          </MapContainer>
-        )}
-
-        {/* Speedometer Panel - Bottom Left */}
-        <AnimatePresence>
-          {showSpeedometer && (
-            <motion.div
-              initial={{ opacity: 0, y: 100 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 100 }}
-              className="map-panel bottom-4 left-4"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-mono uppercase text-zinc-500">Driving Stats</span>
-                <button
-                  onClick={handleResetTrip}
-                  className="text-xs text-neon-cyan hover:text-neon-cyan/80"
-                  data-testid="reset-trip-btn"
-                >
-                  Reset Trip
-                </button>
-              </div>
-              <Speedometer
-                speed={currentSpeed}
-                topSpeed={tripStats.top_speed || 0}
-                avgSpeed={tripStats.avg_speed || 0}
-                distance={tripStats.total_distance || 0}
-                tripStart={tripStats.trip_start}
-                currentSong={currentSong}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Toggle Speedometer Button */}
-        <button
-          onClick={() => setShowSpeedometer(!showSpeedometer)}
-          className="map-panel bottom-4 left-4 lg:hidden glass-panel p-3"
-          style={{ left: showSpeedometer ? 'auto' : '1rem', right: showSpeedometer ? '1rem' : 'auto' }}
-          data-testid="toggle-speedometer-btn"
-        >
-          <Gauge className="w-5 h-5" />
-        </button>
-
-        {/* Lobby info panel */}
-        <div className="map-panel top-4 right-4 glass-panel p-4 max-w-xs">
-          <div className="flex items-center gap-2 mb-3">
-            <Users className="w-4 h-4 text-neon-green" />
-            <span className="font-mono text-xs uppercase tracking-wider text-zinc-400">
-              Current Lobby
-            </span>
+              START SESSION
+              <Radar className="w-5 h-5" />
+            </Button>
           </div>
-          
-          {currentLobby ? (
-            <>
-              <h3 className="font-unbounded font-bold text-lg">
-                {currentLobby.city}, {currentLobby.state}
-              </h3>
-              <p className="text-sm text-zinc-400 mb-3">
-                {currentLobby.member_count} driver{currentLobby.member_count !== 1 ? 's' : ''} online
+        </section>
+
+        {/* Bento Grid: Telemetry & Garage */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          {/* Quick Stats (Telemetry) */}
+          <section className="md:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="bg-surface-container-low border border-white/10 rounded-none p-6 carbon-texture relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-fixed/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="flex items-center gap-2 mb-4">
+                <Gauge className="text-on-surface-variant w-4 h-4" />
+                <h3 className="font-label-caps text-on-surface-variant uppercase text-xs tracking-widest">TOP SPEED</h3>
+              </div>
+              <p className="font-stats-num text-white text-4xl font-bold italic">
+                {tripStats.top_speed}<span className="text-on-surface-variant text-sm ml-1 font-normal not-italic">MPH</span>
               </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLeaveLobby}
-                  data-testid="leave-lobby-btn"
-                  className="flex-1 text-xs"
+              <div className="mt-6 h-1 bg-surface-variant rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary-fixed shadow-[0_0_10px_#CCFF00]" 
+                  style={{ width: `${Math.min((tripStats.top_speed / 200) * 100, 100)}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div className="bg-surface-container-low border border-white/10 rounded-none p-6 carbon-texture relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-tertiary-fixed/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="flex items-center gap-2 mb-4">
+                <Route className="text-on-surface-variant w-4 h-4" />
+                <h3 className="font-label-caps text-on-surface-variant uppercase text-xs tracking-widest">TOTAL MILES</h3>
+              </div>
+              <p className="font-stats-num text-white text-4xl font-bold italic">{tripStats.total_distance.toLocaleString()}</p>
+              <p className="font-label-caps text-tertiary-fixed mt-4 text-xs tracking-widest uppercase">LIFETIME STATS</p>
+            </div>
+
+            <div className="bg-surface-container-low border border-white/10 rounded-none p-6 carbon-texture relative overflow-hidden group col-span-1 sm:col-span-1">
+              <div className="absolute inset-0 bg-gradient-to-br from-secondary-container/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="flex items-center gap-2 mb-4">
+                <MilitaryTech className="text-on-surface-variant w-4 h-4" />
+                <h3 className="font-label-caps text-on-surface-variant uppercase text-xs tracking-widest">CURRENT RANK</h3>
+              </div>
+              <p className="font-stats-num text-secondary-fixed text-2xl font-bold uppercase italic">
+                {user?.rank || 'ROOKIE'}
+              </p>
+              <p className="font-label-caps text-on-surface-variant mt-4 text-xs tracking-widest uppercase text-right">TOP 10%</p>
+            </div>
+          </section>
+
+          {/* Garage Preview */}
+          <section className="md:col-span-4 bg-surface-container-low border border-white/10 rounded-none p-6 flex flex-col justify-between group relative overflow-hidden min-h-[200px]">
+            {user?.primary_car ? (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent z-10"></div>
+                <div className="relative z-20 flex justify-between items-start mb-12">
+                  <h3 className="font-label-caps text-on-surface-variant uppercase tracking-widest bg-black/50 px-2 py-1 rounded text-[10px]">ACTIVE Vehicle</h3>
+                  <span className="w-2 h-2 rounded-full bg-primary-fixed shadow-[0_0_8px_#CCFF00]"></span>
+                </div>
+                <div className="relative z-20 mt-auto">
+                  <h4 className="font-headline-md text-white text-2xl uppercase font-bold italic mb-1">
+                    {user.primary_car.make} {user.primary_car.model}
+                  </h4>
+                  <p className="font-label-caps text-on-surface-variant uppercase text-xs mb-6 tracking-widest">
+                    SPEC: {user.primary_car.drivetrain} • {user.primary_car.horsepower} HP
+                  </p>
+                  <Button 
+                    onClick={() => navigate('/garage')}
+                    className="w-full bg-transparent border border-white/20 text-white font-label-caps py-2 rounded-none hover:border-primary-fixed hover:text-primary-fixed transition-colors uppercase text-xs tracking-widest"
+                  >
+                    CHANGE CAR
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="relative z-20 h-full flex flex-col items-center justify-center text-center">
+                <Car className="w-12 h-12 text-zinc-600 mb-4" />
+                <p className="text-zinc-400 text-sm mb-4">No active vehicle set</p>
+                <Button 
+                  onClick={() => navigate('/garage')}
+                  className="bg-primary-fixed text-black font-bold uppercase tracking-widest text-xs px-6"
                 >
-                  Leave
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => navigate('/lobbies')}
-                  data-testid="switch-lobby-btn"
-                  className="flex-1 text-xs bg-neon-green text-black hover:bg-neon-green/90"
-                >
-                  Switch
+                  ADD CAR
                 </Button>
               </div>
-            </>
-          ) : (
-            <>
-              <p className="text-sm text-zinc-400 mb-3">
-                Join a lobby to see other drivers
-              </p>
-              <Button
-                onClick={() => navigate('/lobbies')}
-                data-testid="join-lobby-btn"
-                className="w-full btn-skew bg-neon-green text-black font-bold hover:bg-neon-green/90"
-              >
-                <span>Join Lobby</span>
-              </Button>
-            </>
-          )}
+            )}
+          </section>
         </div>
 
-        {/* Selected user panel */}
-        <AnimatePresence>
-          {selectedUser && (
-            <motion.div
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 100 }}
-              className="map-panel bottom-4 right-4 glass-panel p-6 w-80"
-            >
-              <button
-                onClick={() => setSelectedUser(null)}
-                className="absolute top-4 right-4 text-zinc-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-full border-2 border-neon-cyan overflow-hidden">
-                  <img
-                    src={selectedUser.picture || 'https://via.placeholder.com/64'}
-                    alt={selectedUser.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-unbounded font-bold">{selectedUser.name}</h3>
-                  <p className="text-xs text-zinc-400">{selectedUser.bio || 'Car enthusiast'}</p>
-                </div>
-              </div>
-
-              {/* Current Song */}
-              {selectedUser.current_song && (
-                <div className="bg-green-500/10 border border-green-500/20 p-3 mb-4 flex items-center gap-2">
-                  <Music2 className="w-4 h-4 text-green-500" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate">{selectedUser.current_song.name}</p>
-                    <p className="text-xs text-zinc-400 truncate">{selectedUser.current_song.artist}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Speed indicator */}
-              {selectedUser.location?.speed > 0 && (
-                <div className="bg-secondary/50 p-3 mb-4 flex items-center justify-between">
-                  <span className="text-xs font-mono uppercase text-zinc-400">Current Speed</span>
-                  <span className="font-unbounded font-bold text-neon-cyan">
-                    {Math.round(selectedUser.location.speed)} MPH
-                  </span>
-                </div>
-              )}
-
-              {selectedUser.primary_car && (
-                <div className="glass-panel p-4 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Car className="w-4 h-4 text-neon-green" />
-                    <span className="font-mono text-xs uppercase tracking-wider text-zinc-400">
-                      Primary Ride
-                    </span>
-                  </div>
-                  <p className="font-bold">
-                    {selectedUser.primary_car.year} {selectedUser.primary_car.make} {selectedUser.primary_car.model}
-                  </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Gauge className="w-4 h-4 text-zinc-400" />
-                    <span className="text-sm text-zinc-400">{selectedUser.primary_car.horsepower} HP</span>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(`/user/${selectedUser.user_id}`)}
-                  data-testid="view-profile-btn"
-                  className="flex-1"
-                >
-                  View Profile
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-                <Button
-                  onClick={() => handleSendRequest(selectedUser.user_id)}
-                  data-testid="send-request-btn"
-                  className="flex-1 bg-neon-green text-black hover:bg-neon-green/90"
-                >
-                  <UserPlus className="w-4 h-4 mr-1" />
-                  Connect
-                </Button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Loading state */}
-        {!userLocation && (
-          <div className="absolute inset-0 flex items-center justify-center bg-void">
-            <div className="text-center">
-              <div className="spinner mx-auto mb-4"></div>
-              <p className="text-zinc-400 font-mono text-sm uppercase tracking-wider">
-                Getting your location...
-              </p>
+        {/* Active Lobbies */}
+        <section className="bg-surface-container-low border border-white/10 rounded-none overflow-hidden">
+          <div className="p-6 border-b border-white/5 flex justify-between items-center bg-surface-container-lowest">
+            <div className="flex items-center gap-3">
+              <Radar className="text-primary-fixed w-5 h-5" />
+              <h3 className="font-label-caps text-primary-fixed font-bold uppercase tracking-widest text-sm">ACTIVE ZONES (LOCAL)</h3>
             </div>
+            <Button 
+              variant="ghost"
+              onClick={() => navigate('/lobbies')}
+              className="font-label-caps text-on-surface-variant hover:text-white transition-colors text-xs tracking-widest"
+            >
+              VIEW ALL
+            </Button>
           </div>
-        )}
+          <div className="divide-y divide-white/5">
+            {lobbies.slice(0, 3).map((lobby) => (
+              <div 
+                key={lobby.lobby_id}
+                onClick={() => navigate('/lobbies')}
+                className="p-6 hover:bg-white/5 transition-colors flex justify-between items-center cursor-pointer group"
+              >
+                <div className="flex items-center gap-6">
+                  <div className="w-12 h-12 rounded-none bg-surface-container flex items-center justify-center border border-white/10 group-hover:border-primary-fixed transition-colors">
+                    <MapPin className="text-on-surface-variant group-hover:text-primary-fixed transition-colors w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-label-caps text-white uppercase text-sm font-bold tracking-widest mb-1">{lobby.city}, {lobby.state}</h4>
+                    <p className="font-body-base text-xs text-on-surface-variant uppercase tracking-wider">
+                      {lobby.member_count} DRIVERS ONLINE • {lobby.is_private ? 'PRIVATE' : 'PUBLIC'}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-stats-num text-2xl font-bold italic text-white">{lobby.member_count}</p>
+                  <p className="font-label-caps text-tertiary-fixed text-[10px] tracking-widest uppercase font-bold">ACTIVE</p>
+                </div>
+              </div>
+            ))}
+            {lobbies.length === 0 && (
+              <div className="p-12 text-center text-zinc-500">
+                <Radar className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <p>Scanning for active zones...</p>
+              </div>
+            )}
+          </div>
+        </section>
       </main>
+
+      {/* BottomNavBar (Mobile Only) */}
+      <nav className="bg-black/95 fixed bottom-0 w-full z-50 border-t border-white/5 shadow-[0_-4px_30px_rgba(0,0,0,0.8)] md:hidden">
+        <div className="flex justify-around items-stretch h-20 pb-safe w-full">
+          {[
+            { icon: <Music2 />, label: 'MUSIC', path: '/dashboard' },
+            { icon: <Gauge />, label: 'STATS', path: '/dashboard', active: true },
+            { icon: <MapPin />, label: 'MAP', path: '/dashboard' },
+            { icon: <Users />, label: 'SQUAD', path: '/squad' },
+          ].map((item, i) => (
+            <button
+              key={i}
+              onClick={() => navigate(item.path)}
+              className={`flex flex-col items-center justify-center flex-1 transition-all duration-300 ${
+                item.active 
+                  ? 'text-primary-fixed bg-white/5 relative after:absolute after:top-0 after:w-12 after:h-1 after:bg-primary-fixed after:shadow-[0_0_10px_#CCFF00]' 
+                  : 'text-white/40 hover:bg-white/10'
+              }`}
+            >
+              {React.cloneElement(item.icon, { className: 'w-5 h-5 mb-1' })}
+              <span className="font-space-grotesk text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 };
 
 export default Dashboard;
+

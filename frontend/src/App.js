@@ -42,8 +42,8 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
-  // Dashboard has its own navigation, so don't show global navbar
-  const hideNavbar = location.pathname === '/dashboard';
+  // Dashboard used to have its own navigation, but now we use the global Navbar
+  const hideNavbar = false;
 
   return (
     <>
