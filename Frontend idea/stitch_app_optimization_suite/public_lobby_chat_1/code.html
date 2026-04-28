@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Public Lobby Chat - Apex Telemetry</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&amp;family=Space+Grotesk:wght@600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#1c1b1b",
+                    "secondary-fixed-dim": "#ffb59e",
+                    "on-surface": "#e5e2e1",
+                    "primary": "#ffffff",
+                    "on-background": "#e5e2e1",
+                    "on-tertiary-container": "#006f77",
+                    "on-surface-variant": "#c4c9ac",
+                    "error-container": "#93000a",
+                    "on-error": "#690005",
+                    "secondary-container": "#ff571a",
+                    "surface-container-highest": "#353534",
+                    "primary-fixed-dim": "#abd600",
+                    "secondary-fixed": "#ffdbd0",
+                    "on-primary-fixed": "#161e00",
+                    "surface-variant": "#353534",
+                    "primary-fixed": "#c3f400",
+                    "on-secondary-fixed": "#3a0b00",
+                    "on-secondary": "#5e1700",
+                    "error": "#ffb4ab",
+                    "tertiary-fixed": "#7df4ff",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-primary": "#283500",
+                    "surface-bright": "#393939",
+                    "outline": "#8e9379",
+                    "tertiary-fixed-dim": "#00dbe9",
+                    "on-tertiary-fixed-variant": "#004f54",
+                    "inverse-surface": "#e5e2e1",
+                    "inverse-primary": "#506600",
+                    "tertiary-container": "#7df4ff",
+                    "on-tertiary": "#00363a",
+                    "outline-variant": "#444933",
+                    "on-tertiary-fixed": "#002022",
+                    "on-primary-container": "#556d00",
+                    "secondary": "#ffb59e",
+                    "inverse-on-surface": "#313030",
+                    "surface-container-high": "#2a2a2a",
+                    "background": "#131313",
+                    "surface-dim": "#131313",
+                    "on-secondary-fixed-variant": "#852400",
+                    "tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#3c4d00",
+                    "surface": "#131313",
+                    "on-secondary-container": "#521300",
+                    "primary-container": "#c3f400",
+                    "surface-tint": "#abd600",
+                    "on-error-container": "#ffdad6",
+                    "surface-container": "#201f1f"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "gutter": "16px",
+                    "container-max": "1200px",
+                    "margin": "24px"
+            },
+            "fontFamily": {
+                    "stats-num": [
+                            "Space Grotesk"
+                    ],
+                    "label-caps": [
+                            "Space Grotesk"
+                    ],
+                    "display-lg": [
+                            "Space Grotesk"
+                    ],
+                    "body-base": [
+                            "Inter"
+                    ],
+                    "headline-md": [
+                            "Space Grotesk"
+                    ]
+            },
+            "fontSize": {
+                    "stats-num": [
+                            "32px",
+                            {
+                                    "lineHeight": "1",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "label-caps": [
+                            "12px",
+                            {
+                                    "lineHeight": "1",
+                                    "letterSpacing": "0.1em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "display-lg": [
+                            "48px",
+                            {
+                                    "lineHeight": "1.1",
+                                    "letterSpacing": "-0.04em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-base": [
+                            "16px",
+                            {
+                                    "lineHeight": "1.5",
+                                    "letterSpacing": "0",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "600"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        .machined-border {
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+        .carbon-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 4px 4px;
+        }
+        .glow-active {
+            box-shadow: 0 0 15px rgba(204, 255, 0, 0.15);
+        }
+        /* Hide scrollbar for clean look but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-base text-body-base antialiased h-screen flex flex-col overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-white/10 shadow-[0_0_15px_rgba(204,255,0,0.1)] flex justify-between items-center px-6 h-16">
+<button class="text-white/60 hover:text-[#CCFF00] transition-colors active:scale-95 duration-100 flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined text-2xl" data-icon="menu">menu</span>
+</button>
+<h1 class="text-[#CCFF00] font-space-grotesk tracking-tighter uppercase text-xl font-black italic tracking-widest text-center flex-1">APEX TELEMETRY</h1>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-[#CCFF00] glow-active flex items-center justify-center bg-surface-container-highest flex-shrink-0">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a young man with neutral expression, soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoxBOy6AB4c1g-mrvcKH8ct2Rf_jnVMNj9k43-8Sj-zZ0MkV-47kAtdGW4T1fRXPxSy9fU4VbRwN9ZH-nhEds9eYyHCuo2H1gVxbWuNkSLyLNWvEqEmrHrqsI6tdAP96fgGQTsEWACpEzFkS6tJsuO2pAL4pOng7PiRTaOIaiZ1FZfY435RgoBgvYCqmDZMphJI_dEejR7wkr-rzJS0fq3O9nJvqsezyKwiGW_vToN_q8xVDG39il4EKsFCh3qJutiMdl3quusJmw"/>
+</div>
+</header>
+<!-- Main Chat Area -->
+<main class="flex-1 flex flex-col pt-16 pb-20 md:pb-0 overflow-hidden bg-background relative">
+<!-- Ambient Background Glow -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden">
+<div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-container/5 rounded-full blur-[100px]"></div>
+<div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary-container/5 rounded-full blur-[100px]"></div>
+</div>
+<!-- Chat Header Info (HUD Style) -->
+<div class="px-margin py-unit mt-4 flex justify-between items-end border-b border-white/5 pb-4 relative z-10">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary">PUBLIC LOBBY <span class="text-primary-container">#77A</span></h2>
+<div class="flex items-center gap-2 mt-1">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">14 DRIVERS CONNECTED</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-stats-num text-stats-num text-primary-container">82</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant flex flex-col"><span>PING</span><span>MS</span></span>
+</div>
+</div>
+<!-- Message Feed -->
+<div class="flex-1 overflow-y-auto no-scrollbar px-margin py-4 space-y-6 relative z-10 flex flex-col">
+<!-- System Message -->
+<div class="flex justify-center my-2">
+<div class="bg-surface-container-high/80 border border-white/10 rounded-full px-4 py-1.5 flex items-center gap-2 backdrop-blur-sm shadow-sm">
+<span class="material-symbols-outlined text-[14px] text-tertiary-fixed-dim" data-icon="location_on">location_on</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">LOBBY LOCATION UPDATED: DOWNTOWN LOOP</span>
+</div>
+</div>
+<!-- Message 1: DRIFT_QUEEN -->
+<div class="flex flex-col gap-1 items-start max-w-[85%]">
+<div class="flex items-center gap-2 ml-2">
+<span class="font-label-caps text-label-caps text-secondary-fixed-dim">DRIFT_QUEEN</span>
+<span class="text-[10px] text-on-surface-variant/50 font-stats-num">21:42</span>
+</div>
+<div class="bg-surface-container-low machined-border rounded-xl rounded-tl-sm p-3 carbon-pattern shadow-md">
+<p class="font-body-base text-body-base text-on-surface">Anyone running the canyon route tonight? Tires are warm.</p>
+</div>
+</div>
+<!-- Message 2: SHIFT_KNG -->
+<div class="flex flex-col gap-1 items-start max-w-[85%]">
+<div class="flex items-center gap-2 ml-2">
+<span class="font-label-caps text-label-caps text-tertiary-fixed-dim">SHIFT_KNG</span>
+<span class="text-[10px] text-on-surface-variant/50 font-stats-num">21:44</span>
+</div>
+<div class="bg-surface-container-low machined-border rounded-xl rounded-tl-sm p-3 carbon-pattern shadow-md">
+<p class="font-body-base text-body-base text-on-surface">Heading there now. Just finished tuning the suspension.</p>
+</div>
+</div>
+<!-- Message 3: GTR_BOY (With Image) -->
+<div class="flex flex-col gap-1 items-start max-w-[85%]">
+<div class="flex items-center gap-2 ml-2">
+<span class="font-label-caps text-label-caps text-primary-container">GTR_BOY</span>
+<span class="text-[10px] text-on-surface-variant/50 font-stats-num">21:46</span>
+</div>
+<div class="bg-surface-container-low machined-border rounded-xl rounded-tl-sm p-2 carbon-pattern shadow-md flex flex-col gap-2">
+<div class="rounded-lg overflow-hidden border border-white/5 aspect-[4/3] w-full max-w-sm">
+<img alt="Modified BMW M4 at night" class="w-full h-full object-cover" data-alt="Sleek dark grey modified BMW M4 parked on a wet city street at night, illuminated by dramatic neon street lights reflecting on the pavement" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaTrjSvR9vAvL9P5CAPYhYhjFNvLPo-svA8XApSoD3TzvXT8tm5AEXl2SFR3Nw860qS-E2858VKnYjvmeaypW9tZ2gNaBEa1jWX6pt8PClCwWXIva1c3lAa8-L-5a5nB5hik1GG7FrSdhGIqGx3HFxIDVwQDjeVvIqyR8pMq_MhcIsfP6kW2VbYhkmYnX8qQb6tMLnIwicVAZvE9ye32j0pcsX5QSW0QKOWD7i_nQkccWeQQixSDhDyJhtTNv391679V5UH6k5Sgo"/>
+</div>
+<p class="font-body-base text-body-base text-on-surface px-1 pb-1">Check the fitment. Ready for the loop.</p>
+</div>
+</div>
+<!-- Message 4: User (Right aligned) -->
+<div class="flex flex-col gap-1 items-end self-end max-w-[85%] mt-4">
+<div class="flex items-center gap-2 mr-2">
+<span class="text-[10px] text-on-surface-variant/50 font-stats-num">21:48</span>
+<span class="font-label-caps text-label-caps text-primary">YOU</span>
+</div>
+<div class="bg-surface-container-highest border border-primary-container/30 rounded-xl rounded-tr-sm p-3 shadow-[0_0_10px_rgba(204,255,0,0.05)]">
+<p class="font-body-base text-body-base text-on-surface">Looks clean. I'll meet you guys at the checkpoint in 10.</p>
+</div>
+</div>
+<!-- Spacer for bottom input -->
+<div class="h-4"></div>
+</div>
+<!-- Input Area (HUD Style) -->
+<div class="p-margin bg-surface/90 backdrop-blur-md border-t border-white/10 relative z-20">
+<div class="flex gap-2 items-end">
+<div class="flex-1 bg-surface-container-low machined-border rounded-lg flex items-center p-1 focus-within:border-primary-container focus-within:ring-1 focus-within:ring-primary-container transition-all">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors flex-shrink-0">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<input class="w-full bg-transparent border-none text-primary font-body-base text-body-base placeholder:text-on-surface-variant/50 focus:ring-0 px-2 py-3" placeholder="TRANSMIT_DATA..." type="text"/>
+</div>
+<button class="bg-primary-container text-on-primary-container font-label-caps text-label-caps rounded-lg px-6 py-4 flex items-center justify-center hover:bg-primary-fixed transition-colors active:scale-95 flex-shrink-0 shadow-[0_0_15px_rgba(204,255,0,0.2)]">
+<span class="material-symbols-outlined text-[20px]" data-icon="send" data-weight="fill">send</span>
+</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full h-20 grid grid-cols-4 items-center pb-safe bg-black/95 backdrop-blur-lg z-50 border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+<a class="flex flex-col items-center justify-center text-white/40 hover:text-white transition-all active:scale-90 duration-200 ease-out h-full" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="speed">speed</span>
+<span class="font-space-grotesk text-[10px] font-bold uppercase tracking-widest">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#CCFF00] drop-shadow-[0_0_8px_rgba(204,255,0,0.5)] hover:text-white transition-all active:scale-90 duration-200 ease-out h-full relative" href="#">
+<div class="absolute top-2 right-1/4 w-2 h-2 bg-primary-container rounded-full shadow-[0_0_5px_rgba(204,255,0,1)]"></div>
+<span class="material-symbols-outlined mb-1" data-icon="chat_bubble" data-weight="fill">chat_bubble</span>
+<span class="font-space-grotesk text-[10px] font-bold uppercase tracking-widest text-[#CCFF00]">Lobby Chat</span>
+</a>
+<a class="flex flex-col items-center justify-center text-white/40 hover:text-white transition-all active:scale-90 duration-200 ease-out h-full" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="garage">garage</span>
+<span class="font-space-grotesk text-[10px] font-bold uppercase tracking-widest">Garages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-white/40 hover:text-white transition-all active:scale-90 duration-200 ease-out h-full" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-space-grotesk text-[10px] font-bold uppercase tracking-widest">Profile</span>
+</a>
+</nav>
+<!-- Web Navigation Panel (Hidden on Mobile) -->
+<aside class="hidden md:flex fixed left-0 top-16 bottom-0 w-24 bg-surface-container-lowest border-r border-white/5 flex-col items-center py-8 z-40 gap-8 shadow-xl">
+<a class="flex flex-col items-center gap-2 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<div class="w-12 h-12 rounded-xl flex items-center justify-center bg-surface-container-low machined-border hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="speed">speed</span>
+</div>
+<span class="font-label-caps text-[10px]">DASH</span>
+</a>
+<a class="flex flex-col items-center gap-2 text-primary-container relative" href="#">
+<div class="absolute -right-1 top-0 w-3 h-3 bg-primary-container rounded-full shadow-[0_0_8px_rgba(204,255,0,0.8)] border-2 border-surface-container-lowest z-10"></div>
+<div class="w-12 h-12 rounded-xl flex items-center justify-center bg-surface-container-high border border-primary-container/50 shadow-[0_0_15px_rgba(204,255,0,0.1)]">
+<span class="material-symbols-outlined text-2xl" data-icon="chat_bubble" data-weight="fill">chat_bubble</span>
+</div>
+<span class="font-label-caps text-[10px] text-[#CCFF00]">COMMS</span>
+</a>
+<a class="flex flex-col items-center gap-2 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<div class="w-12 h-12 rounded-xl flex items-center justify-center bg-surface-container-low machined-border hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="garage">garage</span>
+</div>
+<span class="font-label-caps text-[10px]">GARAGE</span>
+</a>
+</aside>
+</body></html>

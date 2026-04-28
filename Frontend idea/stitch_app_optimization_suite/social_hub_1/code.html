@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Velocity Hub - Social Feed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&amp;family=Space+Grotesk:wght@600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#393939",
+                        "on-primary-fixed-variant": "#3c4d00",
+                        "inverse-surface": "#e5e2e1",
+                        "outline": "#8e9379",
+                        "primary-container": "#c3f400",
+                        "on-error": "#690005",
+                        "secondary": "#ffb59e",
+                        "on-secondary": "#5e1700",
+                        "tertiary-fixed-dim": "#00dbe9",
+                        "on-primary": "#283500",
+                        "primary": "#ffffff",
+                        "primary-fixed-dim": "#abd600",
+                        "on-primary-fixed": "#161e00",
+                        "on-surface": "#e5e2e1",
+                        "surface-dim": "#131313",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-container": "#7df4ff",
+                        "on-tertiary-fixed-variant": "#004f54",
+                        "on-surface-variant": "#c4c9ac",
+                        "secondary-fixed": "#ffdbd0",
+                        "on-tertiary-container": "#006f77",
+                        "on-secondary-container": "#521300",
+                        "inverse-primary": "#506600",
+                        "on-primary-container": "#556d00",
+                        "surface-variant": "#353534",
+                        "on-tertiary": "#00363a",
+                        "error-container": "#93000a",
+                        "surface-container": "#201f1f",
+                        "on-tertiary-fixed": "#002022",
+                        "surface": "#131313",
+                        "outline-variant": "#444933",
+                        "surface-container-high": "#2a2a2a",
+                        "on-background": "#e5e2e1",
+                        "tertiary": "#ffffff",
+                        "background": "#131313",
+                        "on-secondary-fixed": "#3a0b00",
+                        "surface-tint": "#abd600",
+                        "on-secondary-fixed-variant": "#852400",
+                        "surface-container-highest": "#353534",
+                        "secondary-fixed-dim": "#ffb59e",
+                        "secondary-container": "#ff571a",
+                        "primary-fixed": "#c3f400",
+                        "inverse-on-surface": "#313030",
+                        "error": "#ffb4ab",
+                        "surface-container-lowest": "#0e0e0e",
+                        "tertiary-fixed": "#7df4ff",
+                        "surface-container-low": "#1c1b1b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "gutter": "16px",
+                        "margin": "24px",
+                        "container-max": "1200px"
+                    },
+                    "fontFamily": {
+                        "body-base": ["Inter"],
+                        "display-lg": ["Space Grotesk"],
+                        "label-caps": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "stats-num": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-base": ["16px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "stats-num": ["32px", { "lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .machined-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .carbon-texture {
+            background-image: repeating-linear-gradient(45deg, #121212 25%, transparent 25%, transparent 75%, #121212 75%, #121212), repeating-linear-gradient(45deg, #121212 25%, #131313 25%, #131313 75%, #121212 75%, #121212);
+            background-position: 0 0, 10px 10px;
+            background-size: 20px 20px;
+        }
+        /* Hide scrollbar for horizontal scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-base pb-24 pt-20 antialiased selection:bg-primary-container selection:text-on-primary-fixed">
+<!-- TopAppBar from JSON -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-black/95 dark:bg-black/95 border-b border-white/10 shadow-[0_0_20px_rgba(204,255,0,0.05)]">
+<button class="text-zinc-500 hover:text-white transition-colors active:scale-95 duration-75 flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+<h1 class="font-['Space_Grotesk'] uppercase tracking-widest font-bold text-xl italic tracking-tighter text-lime-400">VELOCITY_HUB</h1>
+<button class="text-zinc-500 hover:text-white transition-colors active:scale-95 duration-75 flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+</header>
+<main class="max-w-container-max mx-auto px-margin md:px-margin lg:px-margin space-y-8">
+<!-- Global Feed Section -->
+<section>
+<div class="flex items-center justify-between mb-gutter">
+<h2 class="font-headline-md text-headline-md text-primary">GLOBAL FEED</h2>
+<div class="flex items-center space-x-2 text-primary-container">
+<span class="inline-block w-2 h-2 rounded-full bg-primary-container shadow-[0_0_10px_rgba(195,244,0,0.6)]"></span>
+<span class="font-label-caps text-label-caps tracking-widest">LIVE</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Post Card 1: Car Meet Photo -->
+<article class="bg-surface-container-high rounded-lg overflow-hidden machined-border relative group">
+<div class="absolute inset-0 carbon-texture opacity-30 mix-blend-multiply pointer-events-none"></div>
+<div class="p-4 flex items-center justify-between border-b border-white/5 relative z-10">
+<div class="flex items-center space-x-3">
+<img alt="User avatar" class="w-10 h-10 rounded-full border border-primary-container" data-alt="close up portrait of young man in technical streetwear with neon city lights reflected in eyes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPV4w4URkxT_U_y5Xi_b4ATcwhkC_YsvJ26gJVcK6cKYb0egr7B7Pfhdp7UYVjukVF9EoQFMHaMTTPgvVOy4gd_xafvPtv71vmNK_8aO1B-xDjR7MmsSnNy8e41bzth8QFvt89egEKaSSpPDOCN15l7DRmR01212LUVrQJo397CLLjktfQ7P-Mz7P-M6Gc3dGJxRXPcfv9Ox6D-JbzsPvUGnqwGqJESOFYUqNqldne7YgvU0VIrKH6QteA-Fly01wmd5Lw50_OB1k"/>
+<div>
+<p class="font-label-caps text-label-caps text-primary">NIGHTRIDER_99</p>
+<p class="text-[10px] text-on-surface-variant font-body-base">2m ago • Sweetride Meet</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="aspect-[4/3] w-full relative">
+<img alt="Post image" class="w-full h-full object-cover" data-alt="low angle shot of a matte black aggressive supercar at night with neon underglow and wet asphalt reflections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiLHR4giPV_1MNVZ-fjLs8k9CKEZBNk9dATh9um8RF2eBo5_fbPBrJ3gIRU2ZpD7jL7PtPc2KYm4cPtJyuVauoJVC6Ivf_DghShnKXHqxi_7PPEmXiVQVuQFyYms8d3irPvHo3c3b_-uamxsdrMyOvDkuh9N0Vo4_e5RJ1AXSCowI02ClZ9rTxIujwcTaO9Ggu0ncJlaytE9BQvu-gaJYyojweglnvX6y5B-Y0Y8PnG50OHZu5xGmrCtoAAJXjB9dHjv0bEZPfyfQ"/>
+<div class="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded border border-white/10 flex items-center space-x-1">
+<span class="material-symbols-outlined text-[16px] text-primary-container">location_on</span>
+<span class="font-label-caps text-[10px] text-primary">TOKYO WANGAN</span>
+</div>
+</div>
+<div class="p-4 relative z-10 bg-surface">
+<div class="flex items-center space-x-4 mb-3 text-on-surface-variant">
+<button class="flex items-center space-x-1 hover:text-primary-container transition-colors group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">bolt</span>
+<span class="font-label-caps text-[12px]">342</span>
+</button>
+<button class="flex items-center space-x-1 hover:text-primary transition-colors group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">chat_bubble</span>
+<span class="font-label-caps text-[12px]">48</span>
+</button>
+<button class="flex items-center space-x-1 hover:text-primary transition-colors group ml-auto">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">share</span>
+</button>
+</div>
+<p class="font-body-base text-body-base text-inverse-surface line-clamp-2">Finally got the aero kit installed. The downforce on the wangan run is unreal. Next stop: engine tune. 🏎️💨</p>
+</div>
+</article>
+<!-- Post Card 2: Top Speed Record -->
+<article class="bg-surface-container-high rounded-lg overflow-hidden machined-border relative group flex flex-col">
+<div class="absolute inset-0 carbon-texture opacity-30 mix-blend-multiply pointer-events-none"></div>
+<div class="p-4 flex items-center justify-between border-b border-white/5 relative z-10">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-full bg-surface-bright flex items-center justify-center border border-white/20">
+<span class="material-symbols-outlined text-primary-container">speed</span>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-primary">APEX_PREDATOR</p>
+<p class="text-[10px] text-on-surface-variant font-body-base">15m ago • Telemetry Upload</p>
+</div>
+</div>
+</div>
+<div class="flex-grow p-6 flex flex-col items-center justify-center relative z-10 bg-surface/50 border-b border-white/5">
+<div class="relative mb-4">
+<!-- HUD Ring -->
+<svg class="w-32 h-32 transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="rgba(255,255,255,0.1)" stroke-width="2"></circle>
+<circle class="drop-shadow-[0_0_8px_rgba(195,244,0,0.6)]" cx="50" cy="50" fill="none" r="45" stroke="#c3f400" stroke-dasharray="283" stroke-dashoffset="56" stroke-width="4"></circle>
+<circle cx="50" cy="50" fill="none" r="35" stroke="rgba(255,255,255,0.05)" stroke-dasharray="2 4" stroke-width="1"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-stats-num text-stats-num text-primary tracking-tighter">214</span>
+<span class="font-label-caps text-[10px] text-primary-container mt-1">MPH PEAK</span>
+</div>
+</div>
+<div class="w-full bg-surface-bright rounded h-1 mb-2">
+<div class="bg-primary-container h-full rounded w-[85%] shadow-[0_0_5px_rgba(195,244,0,0.8)]"></div>
+</div>
+<div class="flex justify-between w-full text-[10px] font-label-caps text-on-surface-variant">
+<span>0-60: 2.8s</span>
+<span>1/4 MI: 9.8s</span>
+</div>
+</div>
+<div class="p-4 relative z-10 bg-surface">
+<p class="font-body-base text-body-base text-inverse-surface"><span class="text-primary font-bold">New Personal Record!</span> Broke the 200mph barrier on the salt flats. The telemetry data looks solid.</p>
+<div class="flex items-center space-x-4 mt-3 text-on-surface-variant">
+<button class="flex items-center space-x-1 hover:text-primary-container transition-colors group text-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-label-caps text-[12px]">892</span>
+</button>
+<button class="flex items-center space-x-1 hover:text-primary transition-colors group">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-label-caps text-[12px]">124</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Post Card 3: Squad Joined Announcement -->
+<article class="bg-surface-container-high rounded-lg overflow-hidden machined-border relative group flex flex-col">
+<div class="absolute inset-0 carbon-texture opacity-30 mix-blend-multiply pointer-events-none"></div>
+<div class="flex-grow p-8 flex flex-col items-center justify-center text-center relative z-10 border-b border-white/5 bg-gradient-to-b from-surface-bright/20 to-surface/50">
+<div class="flex items-center justify-center space-x-4 mb-6">
+<img alt="User 1" class="w-14 h-14 rounded-full border-2 border-surface-bright z-20 shadow-xl" data-alt="close up portrait of female driver with racing helmet off" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZzUztDk6MP49NchflGDKaMEcj-3LKm0X1SxHUTwsRFoY4p6ENPiF2W4PjvZ5t66DKevHtaIX3e-tg8Ig2LEf2sKeeRQi91sAN1nNe_B3uxQAqcvv3zhIvDwNOZYpvogGCgxaxncr_aVEH-mHFZXEhrjESF8nfbZ7uldAJhATPIrg0j8D3pyeeNQiaRCcz1KvekNlganXIe59MSYhUJFkbBBWk1lSXdRWgOOfucOg-_d7hDnzSbfhR-Hk593-63tABFQBHHnHwBFo"/>
+<span class="material-symbols-outlined text-primary-container text-3xl font-bold animate-pulse">handshake</span>
+<div class="w-14 h-14 rounded-full border-2 border-primary-container bg-surface-bright flex items-center justify-center z-20 shadow-[0_0_15px_rgba(195,244,0,0.3)]">
+<span class="material-symbols-outlined text-primary">groups</span>
+</div>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">SYNDICATE JOINED</h3>
+<p class="font-body-base text-body-base text-inverse-surface"><strong>DRIFT_QUEEN</strong> has officially joined <span class="text-primary-container font-label-caps">MIDNIGHT_CLUB</span></p>
+</div>
+<div class="p-4 relative z-10 bg-surface flex justify-between items-center">
+<span class="text-[10px] text-on-surface-variant font-label-caps">1H AGO</span>
+<button class="bg-surface-bright hover:bg-surface-variant text-primary font-label-caps text-[12px] py-1.5 px-4 rounded transition-colors machined-border">
+                            VIEW SQUAD
+                        </button>
+</div>
+</article>
+</div>
+</section>
+<!-- Trending Meets (Horizontal Scroll) -->
+<section class="mt-12">
+<div class="flex items-center justify-between mb-gutter">
+<h2 class="font-headline-md text-headline-md text-primary flex items-center">
+<span class="material-symbols-outlined mr-2 text-primary-container">local_fire_department</span>
+                    TRENDING MEETS
+                </h2>
+<button class="text-primary-container font-label-caps text-label-caps hover:text-primary transition-colors">VIEW ALL</button>
+</div>
+<div class="flex overflow-x-auto gap-gutter pb-4 no-scrollbar snap-x snap-mandatory">
+<!-- Meet Card 1 -->
+<div class="snap-start shrink-0 w-72 bg-surface-container rounded-lg overflow-hidden machined-border relative group">
+<div class="h-32 w-full relative">
+<img alt="Meet Location" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-300" data-alt="dramatic wide shot of empty multi level parking garage lit by fluorescent lights at night" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQAR3pTRoEijctPIrK-C6_p-d2xpKbPHQlGKCMZh-TKAzTn-6ugW-UjFxnIkUMl_QE9aeeRiwNSp5GknfY0YV59bbCEXuGub8_o07q5Z_qVgF3UiyNveV5F302Kjm3jPRLnvPvmJfulon2ieg3FO-j2sc2IrSO3KTUlndublEvlS29HmnvSNbw-EwgE7oruK_RpkyKRFfcjoCoUzCQc5VCBHLqkhsZ-y55hDtkwS2sn2J2cNz7UBQGgsMyIP1Mxk687wXBSSOrc0w"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent"></div>
+<div class="absolute top-2 left-2 bg-black/80 px-2 py-1 rounded text-[10px] font-label-caps text-primary-container border border-primary-container/30">
+                            TONIGHT
+                        </div>
+</div>
+<div class="p-4 relative z-10 -mt-8">
+<div class="w-12 h-12 bg-surface-bright rounded flex flex-col items-center justify-center shadow-lg machined-border mb-3">
+<span class="text-[10px] font-label-caps text-secondary">OCT</span>
+<span class="font-stats-num text-[20px] text-primary leading-none">24</span>
+</div>
+<h3 class="font-headline-md text-[18px] text-primary mb-1 truncate">Underground Kings</h3>
+<p class="font-body-base text-[12px] text-on-surface-variant flex items-center mb-3">
+<span class="material-symbols-outlined text-[14px] mr-1">location_on</span>
+                            Sector 7 Garage, Lvl 4
+                        </p>
+<div class="flex justify-between items-center pt-3 border-t border-white/5">
+<div class="flex -space-x-2">
+<img alt="user" class="w-6 h-6 rounded-full border border-surface-container" data-alt="small user avatar placeholder profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpHzrwdSMCuH2Au58Ns37pV2Ha4xtIHcWiiLAClGcyMuvGL9lPGuJ674MIxeNP9qgzg_uabn6atOTJZJL0gUAYlD5h3NpbSrMQ0eNd6WExVi9JJEPTEwsTduO_2aPKmDJKE3xhoZ2693QJ0kBni_cVr7BfJaeWNor7O2vAgwwfQY3tDtPTx2P1f4xpwULHqkKdyPNEzIrT4SmKDXdtPZvZM6dwL1NxrMsFTLEbVK9YpAtseyhNjyjyuaY9J-9sQbS4aKUL7yj1wYI"/>
+<img alt="user" class="w-6 h-6 rounded-full border border-surface-container" data-alt="small user avatar placeholder profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADoi6PFm9J047mhd-G412d4paPar15smdBK06Yz2hWpFv_rWgSzHUtZYPl3UlDlP6SalyTbhvtHlrrxLvdd5pzMwphC1BgP_Gp2nPFE2P6J2Zett_tbF0zl538uaT8gzqchky0VaVYBwb6j4k2fP71ryMgdH18thUaBkZlYihVMPr71OTVu8IsZ3KgoswiG-hCrxolq4V1p6e5TATiSR8ULbL25NbmF5r1i7y2KA-bv5Wbnlk52fVbXA0EXf_7tZjDgE3HQ8F5F3Y"/>
+<img alt="user" class="w-6 h-6 rounded-full border border-surface-container" data-alt="small user avatar placeholder profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVT8eSRknOfBjJoY9B8UIzLCDhtow7tvFRv7D4wTGwDqJjNPDFih-BB6pVVyVw23FKq6dQNM8JJ_oHJ-VbEim3CZQHuur7iZ8apLOmX6UApWfTJ-4MUUrTtugvu5hDgUgUSajjh5uM_2rwhIf4ksNI6YHH0_VI7fetWrHVG4s_VRuBiiFdS5iuxFBwpdmVPqfB0LpVkD9xa39L0Q58TW4IhcWfV8qU1VxBPT5MbHsBPLI6fgscnmPdNddUcVc3emCM3uIm7L2kZu0"/>
+<div class="w-6 h-6 rounded-full border border-surface-container bg-surface-bright flex items-center justify-center text-[8px] font-label-caps text-primary">+42</div>
+</div>
+<button class="bg-primary-container text-black font-label-caps text-[10px] px-3 py-1 rounded hover:bg-white transition-colors">RSVP</button>
+</div>
+</div>
+</div>
+<!-- Meet Card 2 -->
+<div class="snap-start shrink-0 w-72 bg-surface-container rounded-lg overflow-hidden machined-border relative group">
+<div class="h-32 w-full relative">
+<div class="w-full h-full bg-gradient-to-br from-tertiary-fixed-dim/20 to-surface-bright flex items-center justify-center">
+<span class="material-symbols-outlined text-4xl text-tertiary-fixed-dim opacity-50">map</span>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent"></div>
+</div>
+<div class="p-4 relative z-10 -mt-8">
+<div class="w-12 h-12 bg-surface-bright rounded flex flex-col items-center justify-center shadow-lg machined-border mb-3">
+<span class="text-[10px] font-label-caps text-on-surface-variant">OCT</span>
+<span class="font-stats-num text-[20px] text-primary leading-none">28</span>
+</div>
+<h3 class="font-headline-md text-[18px] text-primary mb-1 truncate">Canyon Carve</h3>
+<p class="font-body-base text-[12px] text-on-surface-variant flex items-center mb-3">
+<span class="material-symbols-outlined text-[14px] mr-1">route</span>
+                            Angeles Crest Hwy
+                        </p>
+<div class="flex justify-between items-center pt-3 border-t border-white/5">
+<div class="flex -space-x-2">
+<img alt="user" class="w-6 h-6 rounded-full border border-surface-container" data-alt="small user avatar placeholder profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtmgPdyQDFB885ac1C-bd07SmjEUqldmS3YInCMDBZ8ho_XxMsmzeNR4h1r7k14dLQW6QOoMib_SxhyD7kO-WzoHwrPcToFVONRf-4G2QK3RfvbhKUceVGHMw07fh3NwdSZYF1sc_fIqz4fRHpvenqPzU6YlfaLpRAHN9qAUsy601kdlj2NWRFMtRm3rj7q6JstREcGi3l2QQiIocpB_et8_Rm2fibmrIJLgROkz3aFPG4OKi-m2vPinKVP5SJMx9gEo-i_ZrAj_s"/>
+<div class="w-6 h-6 rounded-full border border-surface-container bg-surface-bright flex items-center justify-center text-[8px] font-label-caps text-primary">+12</div>
+</div>
+<button class="border border-primary-container text-primary-container font-label-caps text-[10px] px-3 py-1 rounded hover:bg-primary-container/10 transition-colors">DETAILS</button>
+</div>
+</div>
+</div>
+<!-- Meet Card 3 -->
+<div class="snap-start shrink-0 w-72 bg-surface-container rounded-lg overflow-hidden machined-border relative group flex items-center justify-center border-dashed border-outline-variant hover:border-primary-container transition-colors cursor-pointer">
+<div class="text-center p-6">
+<div class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center mx-auto mb-3 group-hover:bg-primary-container group-hover:text-black group-hover:border-primary-container transition-all text-on-surface-variant">
+<span class="material-symbols-outlined">add</span>
+</div>
+<h3 class="font-label-caps text-[14px] text-primary mb-1">HOST A MEET</h3>
+<p class="text-[10px] font-body-base text-on-surface-variant">Create a Sweetride gathering</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Top Drivers Leaderboard Widget -->
+<section class="mt-12 mb-8">
+<div class="flex items-center justify-between mb-gutter">
+<h2 class="font-headline-md text-headline-md text-primary flex items-center">
+<span class="material-symbols-outlined mr-2 text-primary-container">emoji_events</span>
+                    TOP DRIVERS
+                </h2>
+<div class="flex bg-surface-bright rounded border border-white/10 p-1">
+<button class="px-3 py-1 bg-surface rounded text-[10px] font-label-caps text-primary shadow-sm">SPEED</button>
+<button class="px-3 py-1 rounded text-[10px] font-label-caps text-on-surface-variant hover:text-primary transition-colors">REP</button>
+</div>
+</div>
+<div class="bg-surface-container-high rounded-lg machined-border overflow-hidden">
+<div class="grid grid-cols-[auto_1fr_auto] gap-4 p-4 border-b border-white/5 text-[10px] font-label-caps text-on-surface-variant">
+<div class="w-8 text-center">POS</div>
+<div>DRIVER</div>
+<div class="text-right">RATING</div>
+</div>
+<!-- Rank 1 -->
+<div class="grid grid-cols-[auto_1fr_auto] gap-4 p-4 items-center border-b border-white/5 bg-primary-container/5 relative overflow-hidden group hover:bg-primary-container/10 transition-colors">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-container shadow-[0_0_10px_rgba(195,244,0,0.8)]"></div>
+<div class="w-8 text-center font-stats-num text-[24px] text-primary-container">1</div>
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded bg-surface-bright border border-primary-container flex items-center justify-center relative">
+<img alt="Driver" class="w-full h-full object-cover rounded opacity-80" data-alt="small user avatar placeholder profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPZXCX70To1b_iu1miPlmprqdTSql7Nm7PJWuB73bqHyfgwHje306DpeCCkyizoufSFe1G20UduBeExOfQhemI1uThBBl5LhPLDxqZaDY2Xe8qJ30xXfACd6TzR4GeWq4fjgrAT8wMoGTq7oIvVN4hnewmgZEugu0-ILhETwBvwlbk0aZdsSrHv6sekEeaFd0aTq6RwGGMzWVxZRNn2n2dn1U5L0anUk7UgE0ut8-NBcInlfM-iQQYYlNxnSoG_Qu4-z6FCI-YIKc"/>
+<span class="material-symbols-outlined absolute -top-2 -right-2 text-primary-container text-[16px]" style="font-variation-settings: 'FILL' 1;">crown</span>
+</div>
+<div>
+<p class="font-label-caps text-[14px] text-primary">APEX_PREDATOR</p>
+<p class="text-[10px] font-body-base text-on-surface-variant">Class: Hypercar</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-stats-num text-[20px] text-primary">9,420</p>
+<p class="text-[10px] font-label-caps text-primary-container">PTS</p>
+</div>
+</div>
+<!-- Rank 2 -->
+<div class="grid grid-cols-[auto_1fr_auto] gap-4 p-4 items-center border-b border-white/5 hover:bg-surface-bright/50 transition-colors">
+<div class="w-8 text-center font-stats-num text-[20px] text-on-surface">2</div>
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded bg-surface-bright border border-white/20 overflow-hidden">
+<img alt="Driver" class="w-full h-full object-cover" data-alt="small user avatar placeholder profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCF3kdUAkroRuqNa6V3eB-3K3V_bpVS6Nu3IjdrbFTwE5pYfWCoRHMjGLMccwIZaTWAtQMg6no-dxu-4gENZpUmwilKcWgsikZAviflers3OekGakqaeexwD4mmaqD6Ce3CrAfulqv3g-Ak8MIt971DuP9S5aXf1Ld0g2k5Q2qhEQ09tAsowTj5iOVXPtPTbnNp8mhKvL13tBkqKu_9bjJPao_Yg0X280a_olaSHk6e_8TH9iN6UeSdQv00itzoE-anmsLTAKw8hLk"/>
+</div>
+<div>
+<p class="font-label-caps text-[14px] text-on-surface">DRIFT_QUEEN</p>
+<p class="text-[10px] font-body-base text-on-surface-variant">Class: Tuner</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-stats-num text-[18px] text-on-surface">8,950</p>
+</div>
+</div>
+<!-- Rank 3 -->
+<div class="grid grid-cols-[auto_1fr_auto] gap-4 p-4 items-center hover:bg-surface-bright/50 transition-colors">
+<div class="w-8 text-center font-stats-num text-[20px] text-secondary">3</div>
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded bg-surface-bright border border-white/20 overflow-hidden">
+<img alt="Driver" class="w-full h-full object-cover grayscale" data-alt="small user avatar placeholder profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBngi7rE1lvpXcUxJfhfmswr6GRp74Xp4B2PFBRXUOwGJJ9DpHRO661yzXNUuq_XSuLPtCHu0nw-WSXv9gT2hJBsMOjaXyDNh3IjcfAAv6JmypGqgmqDQx0YOMQzwR_Ttzd5QDlb1-_40rhZoeKjxeHE7SIUDYSOlhp-apWHgq9JQJFmrBdSpM5Y-VXyAvZtrj5ipYubwvFJYxCw3kske2ZMtM8V2npzp-bAhIcLHrUohJxOwqcrhGwstLZ3bQxXReknvL2KDT3lI8"/>
+</div>
+<div>
+<p class="font-label-caps text-[14px] text-on-surface">GHOST_RIDER</p>
+<p class="text-[10px] font-body-base text-on-surface-variant">Class: Muscle</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-stats-num text-[18px] text-on-surface">8,100</p>
+</div>
+</div>
+</div>
+<div class="mt-4 text-center">
+<button class="text-[10px] font-label-caps text-on-surface-variant hover:text-primary transition-colors uppercase tracking-widest flex items-center justify-center w-full">
+                    Full Leaderboard <span class="material-symbols-outlined ml-1 text-[14px]">arrow_forward</span>
+</button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar from JSON (Mobile Only conceptually, but rendering as requested) -->
+<!-- Assuming "FEED" is the active state based on page intent -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center h-20 px-4 pb-2 bg-[#121212] dark:bg-[#121212] rounded-t-none border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] md:hidden">
+<button class="flex flex-col items-center justify-center text-lime-400 drop-shadow-[0_0_5px_rgba(204,255,0,0.6)] active:translate-y-0.5 transition-transform hover:bg-white/5 w-full h-full rounded">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">dynamic_feed</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-tighter">FEED</span>
+</button>
+<button class="flex flex-col items-center justify-center text-zinc-600 active:translate-y-0.5 transition-transform hover:bg-white/5 w-full h-full rounded">
+<span class="material-symbols-outlined mb-1">calendar_today</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-tighter">EVENTS</span>
+</button>
+<button class="flex flex-col items-center justify-center text-zinc-600 active:translate-y-0.5 transition-transform hover:bg-white/5 w-full h-full rounded">
+<span class="material-symbols-outlined mb-1">leaderboard</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-tighter">RANKS</span>
+</button>
+<button class="flex flex-col items-center justify-center text-zinc-600 active:translate-y-0.5 transition-transform hover:bg-white/5 w-full h-full rounded">
+<span class="material-symbols-outlined mb-1">directions_car</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-tighter">GARAGE</span>
+</button>
+<button class="flex flex-col items-center justify-center text-zinc-600 active:translate-y-0.5 transition-transform hover:bg-white/5 w-full h-full rounded">
+<span class="material-symbols-outlined mb-1">forum</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-tighter">CHAT</span>
+</button>
+</nav>
+<!-- Desktop Sidebar (Hidden on mobile, visible on md+) to balance the layout since BottomNav is mobile-focused -->
+<aside class="hidden md:flex flex-col py-8 px-4 h-full w-80 border-r border-white/10 shadow-2xl shadow-lime-400/10 bg-black dark:bg-black fixed left-0 top-16 bottom-0 z-40 overflow-y-auto">
+<!-- Header Profile -->
+<div class="flex items-center space-x-4 mb-8 pb-8 border-b border-white/10 px-4">
+<div class="w-12 h-12 rounded bg-surface-bright border border-primary-container overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="small user avatar placeholder profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDemEI_N73vBhjH1KHrR4xqqbEsbIwzKLulCpfU0qVb7_O1RU2GoygZ713wyoJSeJno95NTtN9nzcV1barhNSs-NQ_6U-msh6lyDBMDd40GBf1-1fey43rIFSZ3ymNa8yhnx02Yv1p-G8s0D5YWL-QGGAguDdlOvYSIGxJfS7ocXD-FGnERL9nArWKkGA1aaZkvU2ZMdFVA9hhGAQ3PdEM8G38FZkGRwD48prXEZxBOeJwSrTvUOuAlSlAtwDXq5unnKWxuyAVI43U"/>
+</div>
+<div>
+<h2 class="text-lime-400 font-black font-['Space_Grotesk'] uppercase text-[18px] leading-tight">DRIVER_01</h2>
+<p class="text-on-surface-variant font-label-caps text-[10px] mb-1">Pro Class</p>
+<div class="flex items-center text-primary-container font-stats-num text-[14px]">
+<span class="material-symbols-outlined text-[14px] mr-1">star</span> 1,240 XP
+                 </div>
+</div>
+</div>
+<!-- NavigationDrawer Links from JSON (Mapped roughly to sidebar concepts for desktop) -->
+<nav class="flex-grow space-y-2">
+<a class="flex items-center px-4 py-3 bg-lime-400 text-black font-bold rounded-r-full font-['Space_Grotesk'] uppercase text-[14px] transition-all duration-200" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 1;">dynamic_feed</span>
+                FEED
+            </a>
+<a class="flex items-center px-4 py-3 text-zinc-400 hover:bg-zinc-900 rounded-r-full font-['Space_Grotesk'] uppercase text-[14px] transition-all duration-200" href="#">
+<span class="material-symbols-outlined mr-4">calendar_today</span>
+                EVENTS
+            </a>
+<a class="flex items-center px-4 py-3 text-zinc-400 hover:bg-zinc-900 rounded-r-full font-['Space_Grotesk'] uppercase text-[14px] transition-all duration-200" href="#">
+<span class="material-symbols-outlined mr-4">leaderboard</span>
+                RANKS
+            </a>
+<a class="flex items-center px-4 py-3 text-zinc-400 hover:bg-zinc-900 rounded-r-full font-['Space_Grotesk'] uppercase text-[14px] transition-all duration-200" href="#">
+<span class="material-symbols-outlined mr-4">directions_car</span>
+                GARAGE
+            </a>
+</nav>
+<div class="mt-auto pt-8 border-t border-white/10 space-y-2">
+<a class="flex items-center px-4 py-3 text-zinc-400 hover:bg-zinc-900 rounded-r-full font-['Space_Grotesk'] uppercase text-[14px] transition-all duration-200" href="#">
+<span class="material-symbols-outlined mr-4">settings_input_component</span>
+                Engine Specs
+            </a>
+<a class="flex items-center px-4 py-3 text-zinc-400 hover:bg-zinc-900 rounded-r-full font-['Space_Grotesk'] uppercase text-[14px] transition-all duration-200" href="#">
+<span class="material-symbols-outlined mr-4">logout</span>
+                Logout
+            </a>
+</div>
+</aside>
+<!-- Spacer for desktop sidebar -->
+<div class="hidden md:block fixed left-0 top-0 bottom-0 w-80 z-[-1]"></div>
+<!-- Adjust main container padding for desktop sidebar -->
+<style>
+        @media (min-width: 768px) {
+            main {
+                padding-left: calc(20rem + 24px); /* 80w (20rem) + margin */
+            }
+        }
+    </style>
+</body></html>

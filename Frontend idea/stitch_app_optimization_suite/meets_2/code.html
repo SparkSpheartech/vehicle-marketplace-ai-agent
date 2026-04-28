@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sweetride Meets</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#283500",
+                        "inverse-surface": "#e5e2e1",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#3c4d00",
+                        "surface-container-high": "#2a2a2a",
+                        "tertiary-fixed": "#7df4ff",
+                        "surface-container": "#201f1f",
+                        "secondary": "#ffb59e",
+                        "outline": "#8e9379",
+                        "on-secondary": "#5e1700",
+                        "inverse-primary": "#506600",
+                        "outline-variant": "#444933",
+                        "surface": "#131313",
+                        "on-secondary-fixed-variant": "#852400",
+                        "on-surface": "#e5e2e1",
+                        "tertiary-container": "#7df4ff",
+                        "tertiary-fixed-dim": "#00dbe9",
+                        "surface-variant": "#353534",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-container": "#006f77",
+                        "on-background": "#e5e2e1",
+                        "secondary-fixed": "#ffdbd0",
+                        "primary": "#ffffff",
+                        "primary-container": "#c3f400",
+                        "error-container": "#93000a",
+                        "surface-bright": "#393939",
+                        "on-tertiary-fixed": "#002022",
+                        "on-secondary-container": "#521300",
+                        "on-surface-variant": "#c4c9ac",
+                        "on-tertiary-fixed-variant": "#004f54",
+                        "surface-dim": "#131313",
+                        "surface-container-highest": "#353534",
+                        "primary-fixed": "#c3f400",
+                        "secondary-container": "#ff571a",
+                        "background": "#131313",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-tint": "#abd600",
+                        "on-tertiary": "#00363a",
+                        "on-secondary-fixed": "#3a0b00",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#abd600",
+                        "surface-container-low": "#1c1b1b",
+                        "inverse-on-surface": "#313030",
+                        "tertiary": "#ffffff",
+                        "on-primary-fixed": "#161e00",
+                        "on-primary-container": "#556d00",
+                        "secondary-fixed-dim": "#ffb59e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin": "24px",
+                        "container-max": "1200px",
+                        "unit": "4px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-base": ["Inter"],
+                        "headline-md": ["Space Grotesk"],
+                        "label-caps": ["Space Grotesk"],
+                        "stats-num": ["Space Grotesk"],
+                        "display-lg": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-base": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "stats-num": ["32px", {"lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .carbon-pattern {
+            background-image: radial-gradient(#ffffff 0.5px, transparent 0.5px);
+            background-size: 4px 4px;
+            opacity: 0.05;
+        }
+        .machined-edge {
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-base min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-black/80 backdrop-blur-md border-b border-white/10 shadow-[0_0_15px_rgba(204,255,0,0.1)]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#CCFF00] cursor-pointer" data-icon="menu">menu</span>
+<h1 class="text-xl font-black italic tracking-tighter text-[#CCFF00] font-['Space_Grotesk'] uppercase">SWEETRIDE</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-zinc-500 hover:text-[#CCFF00] transition-colors" data-icon="notifications">notifications</span>
+<div class="w-8 h-8 rounded-full border border-[#CCFF00]/30 overflow-hidden bg-surface-container">
+<img alt="Driver Profile" class="w-full h-full object-cover" data-alt="Close up portrait of a professional car enthusiast driver with a confident look, high contrast urban lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCl71KRzdXgFz9mWHNOS26scLu_CKRAKCqNGZq1mdPINj33of_4HOY_yPvYl_Q8fTRs2U3CFvWOD1T6mo5PA6SUyB60L80RIdU8SFt-i4bqCM4vqT4_RXehABBHLg9UD-9yc4F14r-DxbE5SJG4GI2X4JAu_-H_VhJ6DI6v7VyXBhGhw5mbjA0rrr9noKc0rRTaoAe1sDT2KaVxGx2ywzVizTRU_fkM38BQdffh1E3fZwPnF9R-X795aDCTnY23r00DebgAlCbsMrY"/>
+</div>
+</div>
+</header>
+<main class="pt-24 px-margin max-w-container-max mx-auto">
+<!-- Section Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+<div>
+<span class="font-label-caps text-label-caps text-[#CCFF00] uppercase tracking-[0.2em] mb-2 block">Upcoming Events</span>
+<h2 class="font-display-lg text-display-lg uppercase leading-none italic">MEETS &amp; RUNS</h2>
+</div>
+<div class="flex bg-surface-container-low p-1 rounded-lg border border-white/5">
+<button class="px-6 py-2 rounded bg-primary-container text-on-primary-container font-label-caps text-label-caps uppercase">List</button>
+<button class="px-6 py-2 rounded text-zinc-500 font-label-caps text-label-caps uppercase hover:text-white transition-colors">Calendar</button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Column: Map Integration (Bento Style) -->
+<div class="lg:col-span-4 flex flex-col gap-gutter">
+<div class="relative h-[400px] lg:h-full min-h-[300px] rounded-xl overflow-hidden border border-white/10 group">
+<img alt="Event Map" class="w-full h-full object-cover" data-alt="Dark aesthetic stylized satellite map of Southern California with neon blue road highlights and glowing acid green markers" data-location="Irvine, California" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdIBJiJNBx_HBl1eXGJEkm2vhNXGVyFzLBiWz06NIc41KbmwAzH1hGPR3UEz0b6NGpCxdn6szOfMhpZtZWjxfTwwkbj_8M7B57r6STfkClqpRDA2QJFzCjUNYdWt-4Mqi6cp3-pEOUrVuZQ6iW05ZJ5BG0ck0f7fu3TzM6mJjH81HiWKCDBDrRInfq4NCtz4zVZIltesqgZ-QPUXfTBcK9e7hu37btDGGt9uzfHcFm97fXw2ef8Y2dPnqjw97ycx_pjg4Xd54gAIY"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+<div class="absolute bottom-4 left-4 right-4 bg-surface-container/90 backdrop-blur-md p-4 rounded border border-white/10">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-caps text-label-caps text-[#CCFF00]">ACTIVE MAP</span>
+<span class="flex h-2 w-2 rounded-full bg-[#CCFF00] animate-pulse"></span>
+</div>
+<p class="text-xs text-zinc-400 font-body-base leading-relaxed">3 High-performance meetups detected in your sector this week.</p>
+</div>
+</div>
+</div>
+<!-- Right Column: Event List -->
+<div class="lg:col-span-8 flex flex-col gap-4">
+<!-- Event Card 1 -->
+<div class="group relative bg-[#121212] rounded-xl border border-white/10 overflow-hidden machined-edge transition-all hover:border-[#CCFF00]/40">
+<div class="absolute inset-0 carbon-pattern"></div>
+<div class="relative p-6 flex flex-col md:flex-row items-center gap-6">
+<div class="w-full md:w-48 h-32 rounded-lg overflow-hidden border border-white/5 shrink-0">
+<img alt="Cars &amp; Coffee Irvine" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A row of luxury supercars parked at a morning car meet with golden sunlight flares and morning mist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHVO-G1juvBRy4nnlzyA6LOrioQfhaZRZ04-p5Nfavk7Xp21QHJx__eLBo0sfa7Vv6YCvRx5neCrBFjP9jibR5wVueC6M_HYhiFk0dUkkPYOO8YjHvCvQ8lt67F4zinJnk_zUOz4FUXfsGiV7pT5uNdbY5PJfgSV2xI2g_8v2LFSUIIf3plFrXIfcHuk2bB4QcfslWaVNQ8uh2kuusGQPRdJw9a5kVCZuB60jBug5-zvrCdq7HSYb98tq_Wsw-wP2uYMojW7TYWSM"/>
+</div>
+<div class="flex-grow">
+<div class="flex items-center gap-3 mb-2">
+<span class="bg-primary-container text-on-primary-container px-2 py-0.5 rounded font-label-caps text-[10px] uppercase">Tomorrow</span>
+<span class="text-zinc-500 font-label-caps text-label-caps">7:00 AM</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-white mb-1 uppercase tracking-tight">Cars &amp; Coffee Irvine</h3>
+<div class="flex items-center gap-2 text-zinc-400 mb-4">
+<span class="material-symbols-outlined text-[16px]" data-icon="location_on">location_on</span>
+<span class="text-sm font-body-base">Irvine Spectrum Center, CA</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border border-black bg-zinc-800 flex items-center justify-center overflow-hidden">
+<img alt="user" class="w-full h-full object-cover" data-alt="portrait of a man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD39SKe8hNE5G-imUjMMsg1Xxgzyp6hSLilRsVlV7yVM8KbKk2JwYtEG4DJ-KOpuDncv6PxaJPLIlVmwJ8oC_43NQhRTbifGSWIXyXMTZoiZSceP9QE9nt3Z3YYCBJHkSEWrmPslfrsyCQ9qmjY4ZFBdqx2C9L12NymhJC4sINV-Uabdeq0W__D83Bi-kCzr01f7o94kpLSk44uN-EECvSlM1hueDVc3CNKBHtJ33Hd_KRA7Tx6KT6GvHF_J9UlEeAvz51XCFmlM9A"/>
+</div>
+<div class="w-6 h-6 rounded-full border border-black bg-zinc-800 flex items-center justify-center overflow-hidden">
+<img alt="user" class="w-full h-full object-cover" data-alt="portrait of a woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFBsj7KrBx9XqQHRsLeOOydk6j8KrqPyBtougMWWSmjOxFrYLlrMYom3J4nGNLo-WP49uevl15UEAcjWyhog9ZGySUlMCB8ZoVC2rBzLjCcvnFtx3rDucLVNFtvuueU4UQuzGm_m649XOsnXDVpxmZjHXq31zFIKxdFknCYclINpLG-Lw7XgjjQZ7ujwKyfcA8a16yT84n2Z_ctUM5l1YwpUVt8JpGq95FQ-xHuBWy3WToVuwhlymsGMXNrtlXYw9oimuI9uhFSxg"/>
+</div>
+<div class="w-6 h-6 rounded-full border border-black bg-zinc-700 flex items-center justify-center text-[8px] font-bold">+142</div>
+</div>
+<button class="px-6 py-2 border border-[#CCFF00] text-[#CCFF00] font-label-caps text-label-caps rounded uppercase hover:bg-[#CCFF00] hover:text-black transition-all active:scale-95 duration-100">Interested</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Event Card 2 -->
+<div class="group relative bg-[#121212] rounded-xl border border-white/10 overflow-hidden machined-edge transition-all hover:border-[#CCFF00]/40">
+<div class="absolute inset-0 carbon-pattern"></div>
+<div class="relative p-6 flex flex-col md:flex-row items-center gap-6">
+<div class="w-full md:w-48 h-32 rounded-lg overflow-hidden border border-white/5 shrink-0">
+<img alt="Midnight Run" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Motion blur of sports car tail lights on a dark urban highway at night with neon city lights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsf52JK9o7W6BVA4d_W3crEVAHPBW7BLL9PFVvL6vUEYiakjnzRU2egJW3N-7HAD6zvLkxmdNKxBVGF-BgwT4wq9f2dnYjoGwxkqU0kt39JHssTVLpcb_Ok8Lfq_RuKCXDB5fqhjaRsNsCuPn-jfv8xnbcA-fidWaDfHuEwJl6abhGcUsFEPaDm7PPO1EOwsPm5y64AW18lVGwdbecrKy9pVOdHIEiv5XAB16CkV5hcjMaG4hYzZdNgUmXP02owiP_MrmqwRr0okA"/>
+</div>
+<div class="flex-grow">
+<div class="flex items-center gap-3 mb-2">
+<span class="bg-surface-container-high text-zinc-400 px-2 py-0.5 rounded font-label-caps text-[10px] uppercase">Friday</span>
+<span class="text-zinc-500 font-label-caps text-label-caps">10:00 PM</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-white mb-1 uppercase tracking-tight">Midnight Run</h3>
+<div class="flex items-center gap-2 text-zinc-400 mb-4">
+<span class="material-symbols-outlined text-[16px]" data-icon="location_on">location_on</span>
+<span class="text-sm font-body-base">Downtown LA - 6th St Bridge</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border border-black bg-zinc-800 flex items-center justify-center overflow-hidden">
+<img alt="user" class="w-full h-full object-cover" data-alt="portrait of a man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqP3yKZeM3Cc8Zft4Z-B1xtmsmlxfx5Top9hIJ8NmQrguoO6koSwRCHXpnAA1gRMyUf10af0FWSyfj_xNoESMLrqFnhPZUUFObf673yApD-siWj0gtaVoZQe3-TjcYk31sYUALpseth89oCeYH3IY2ZTe6EGeXXV2eevt1s6jroe-d1cEBofsqq_1zo3kjfNOScD1QS-skFH7yp4amZPRZqCc60CGvglNg8zlXcQBGFhy9qZxwaC_hLmtMBaGY3QEX2XBXPoeqWzE"/>
+</div>
+<div class="w-6 h-6 rounded-full border border-black bg-zinc-700 flex items-center justify-center text-[8px] font-bold">+86</div>
+</div>
+<button class="px-6 py-2 border border-[#CCFF00] text-[#CCFF00] font-label-caps text-label-caps rounded uppercase hover:bg-[#CCFF00] hover:text-black transition-all active:scale-95 duration-100">Interested</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Event Card 3 -->
+<div class="group relative bg-[#121212] rounded-xl border border-white/10 overflow-hidden machined-edge transition-all hover:border-[#CCFF00]/40">
+<div class="absolute inset-0 carbon-pattern"></div>
+<div class="relative p-6 flex flex-col md:flex-row items-center gap-6">
+<div class="w-full md:w-48 h-32 rounded-lg overflow-hidden border border-white/5 shrink-0">
+<img alt="Hills of Malibu Tour" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Winding coastal road in Malibu with a classic vintage car driving through green hills overlooking the ocean" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqD-qysMC8gm1pe1du-8uiLYom8c7ITzD3b7ulmUmYOw_YG_-unDB-TeaNfx_vJ_PH8L3LWHmGbpOHPkG-jOYFbqeC5nJDhwXJ9WbeJ1n3LpXavZq8g50RPQ8lEoKovqID4ZvosynzE5087XQAZgoxsvEK2OLeaczuzZDzUzT8c86hR-b3jGC7UJkdL0sT7q9x4yBti3-yK6Q3GLVkXfctOKkW7aYXifIhWW7CDgl6zgYB1fS3X8vugeeebO9efkLQpiGJmos7jrE"/>
+</div>
+<div class="flex-grow">
+<div class="flex items-center gap-3 mb-2">
+<span class="bg-surface-container-high text-zinc-400 px-2 py-0.5 rounded font-label-caps text-[10px] uppercase">Saturday</span>
+<span class="text-zinc-500 font-label-caps text-label-caps">9:00 AM</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-white mb-1 uppercase tracking-tight">Hills of Malibu Tour</h3>
+<div class="flex items-center gap-2 text-zinc-400 mb-4">
+<span class="material-symbols-outlined text-[16px]" data-icon="location_on">location_on</span>
+<span class="text-sm font-body-base">PCH &amp; Kanan Dume Rd</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border border-black bg-zinc-800 flex items-center justify-center overflow-hidden">
+<img alt="user" class="w-full h-full object-cover" data-alt="portrait of a woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHfWtFUc96WSLbtPdCnY_KmGkFI-lpHilaCGJEWvsf1blQpJaTP4bI02JMFMju63LFFLFMJUbso-JrRM3zcpmfrWXLP4Ifpp_zylJc_i8g0f3e7J1wbN80AIED9-Ksp3YQJJhAZbx4_W9ciS1gt1Ad78wuBK9D-_DiMze7DUMlF3t6_mDCzqUclW6dquHcALiyLTMkLrV9TnEPqJnhZ_W6yHceYpb_p_XbZIIVtxw466Slw0O69ewywE6spXYj3PcOSCj2ezfNYhQ"/>
+</div>
+<div class="w-6 h-6 rounded-full border border-black bg-zinc-700 flex items-center justify-center text-[8px] font-bold">+210</div>
+</div>
+<button class="px-6 py-2 border border-[#CCFF00] text-[#CCFF00] font-label-caps text-label-caps rounded uppercase hover:bg-[#CCFF00] hover:text-black transition-all active:scale-95 duration-100">Interested</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#121212]/95 backdrop-blur-xl border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] rounded-t-xl">
+<div class="flex flex-col items-center justify-center text-zinc-500 hover:text-white transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="explore">explore</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-tighter">Map</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 hover:text-white transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="speed">speed</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-tighter">Lobbies</span>
+</div>
+<!-- Active Tab: Meets -->
+<div class="flex flex-col items-center justify-center text-[#CCFF00] drop-shadow-[0_0_8px_rgba(204,255,0,0.6)] cursor-pointer active:translate-y-[-2px] transition-transform">
+<span class="material-symbols-outlined mb-1" data-icon="groups">chat_bubble</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-tighter">Lobby Chat</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 hover:text-white transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="forum">forum</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-tighter">Squad</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 hover:text-white transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="settings_input_component">settings_input_component</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-tighter">Profile</span>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lobby Chat</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@400;600;700;900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#00363a",
+                    "secondary-fixed": "#ffdbd0",
+                    "on-tertiary-fixed": "#002022",
+                    "on-secondary": "#5e1700",
+                    "surface-tint": "#abd600",
+                    "tertiary-fixed-dim": "#00dbe9",
+                    "on-primary-container": "#556d00",
+                    "surface-variant": "#353534",
+                    "on-surface-variant": "#c4c9ac",
+                    "inverse-on-surface": "#313030",
+                    "error": "#ffb4ab",
+                    "tertiary-fixed": "#7df4ff",
+                    "secondary": "#ffb59e",
+                    "surface-container-highest": "#353534",
+                    "on-surface": "#e5e2e1",
+                    "tertiary": "#ffffff",
+                    "inverse-surface": "#e5e2e1",
+                    "surface": "#131313",
+                    "on-error-container": "#ffdad6",
+                    "primary": "#ffffff",
+                    "surface-container-high": "#2a2a2a",
+                    "on-secondary-fixed": "#3a0b00",
+                    "on-error": "#690005",
+                    "surface-container-lowest": "#0e0e0e",
+                    "inverse-primary": "#506600",
+                    "outline-variant": "#444933",
+                    "on-background": "#e5e2e1",
+                    "on-tertiary-fixed-variant": "#004f54",
+                    "primary-fixed": "#c3f400",
+                    "on-tertiary-container": "#006f77",
+                    "primary-fixed-dim": "#abd600",
+                    "background": "#131313",
+                    "tertiary-container": "#7df4ff",
+                    "secondary-container": "#ff571a",
+                    "error-container": "#93000a",
+                    "outline": "#8e9379",
+                    "on-primary": "#283500",
+                    "surface-container-low": "#1c1b1b",
+                    "surface-bright": "#393939",
+                    "primary-container": "#c3f400",
+                    "on-primary-fixed": "#161e00",
+                    "surface-dim": "#131313",
+                    "on-secondary-container": "#521300",
+                    "secondary-fixed-dim": "#ffb59e",
+                    "on-secondary-fixed-variant": "#852400",
+                    "surface-container": "#201f1f",
+                    "on-primary-fixed-variant": "#3c4d00"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "container-max": "1200px",
+                    "gutter": "16px",
+                    "margin": "24px",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "label-caps": [
+                            "Space Grotesk"
+                    ],
+                    "stats-num": [
+                            "Space Grotesk"
+                    ],
+                    "body-base": [
+                            "Inter"
+                    ],
+                    "display-lg": [
+                            "Space Grotesk"
+                    ],
+                    "headline-md": [
+                            "Space Grotesk"
+                    ]
+            },
+            "fontSize": {
+                    "label-caps": [
+                            "12px",
+                            {
+                                    "lineHeight": "1",
+                                    "letterSpacing": "0.1em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "stats-num": [
+                            "32px",
+                            {
+                                    "lineHeight": "1",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-base": [
+                            "16px",
+                            {
+                                    "lineHeight": "1.5",
+                                    "letterSpacing": "0",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "display-lg": [
+                            "48px",
+                            {
+                                    "lineHeight": "1.1",
+                                    "letterSpacing": "-0.04em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "600"
+                            }
+                    ]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        /* Custom scrollbar for chat area */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #444933;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c3f400;
+        }
+        /* Subtle diagonal hatch pattern for technical feel */
+        .bg-hatch {
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.02) 10px,
+                rgba(255, 255, 255, 0.02) 11px
+            );
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-base h-screen flex flex-col overflow-hidden antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar Shared Component -->
+<header class="fixed top-0 w-full z-50 bg-black/95 border-b border-white/10 shadow-[0_0_15px_rgba(204,255,0,0.1)] flex justify-between items-center px-6 py-4 backdrop-blur-md">
+<!-- Leading Avatar -->
+<div class="w-10 h-10 rounded-full border border-outline-variant overflow-hidden flex-shrink-0">
+<img alt="Driver Profile" class="w-full h-full object-cover" data-alt="close-up portrait of a driver wearing a racing suit in moody low light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXvth-VVrpLhhlLGd4zL3XzSutMVY7rHG4RW2LMoxXpFEamF82VLHzxr2m23CRX2U8D_CNLKXquDKSXoBPopebzFe9t6dpFd9t-IObFnePXU0wX0ZhT55RuQJOh85hwcA7QscNu0Q-6snA7VgeQHB98v26y8zQH86aps1pNlVZgRYnYsa5rYaOvACmxb5mBIOQAkHTFtRyHAXoRz3MV-j6nYwcfZERbDUIxgAcdM0ldXVNZmR2faUs-tf4RfuGsYGoKzfyVt0T48s"/>
+</div>
+<!-- Headline -->
+<h1 class="font-['Space_Grotesk'] uppercase tracking-widest font-black italic text-xl text-lime-400 drop-shadow-[0_0_8px_rgba(204,255,0,0.4)]">
+            SQUAD_LOBBY
+        </h1>
+<!-- Trailing Icon -->
+<button class="text-lime-400 hover:text-lime-300 transition-colors active:scale-95 duration-150 p-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+</button>
+</header>
+<!-- Main Chat Canvas -->
+<main class="flex-1 overflow-y-auto w-full max-w-container-max mx-auto px-margin pt-[88px] pb-[160px] bg-hatch flex flex-col justify-end">
+<!-- Channel Header Context -->
+<div class="flex flex-col items-center justify-center py-6 mb-4 border-b border-outline-variant/30">
+<div class="flex items-center gap-2 mb-1">
+<span class="w-2 h-2 rounded-full bg-error shadow-[0_0_8px_rgba(255,180,171,0.8)] animate-pulse"></span>
+<h2 class="font-headline-md text-headline-md text-primary tracking-widest">LOBBY_01</h2>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">SECURE CONNECTION ESTABLISHED</p>
+</div>
+<div class="flex flex-col gap-6">
+<!-- Message 1: SHIFT_KNG -->
+<div class="flex flex-col items-start w-full max-w-[85%] sm:max-w-[70%]">
+<div class="flex items-center gap-2 mb-1 ml-2">
+<div class="w-6 h-6 rounded-full bg-surface-bright flex items-center justify-center border border-outline-variant overflow-hidden">
+<span class="font-label-caps text-[8px] text-on-surface">SK</span>
+</div>
+<span class="font-label-caps text-label-caps text-secondary-container">SHIFT_KNG</span>
+<span class="text-[10px] text-on-surface-variant/50 font-label-caps tracking-wider">21:04</span>
+</div>
+<div class="bg-surface-container border-l-2 border-secondary-container border-t border-r border-b border-surface-bright rounded-xl rounded-tl-sm p-4 text-on-surface font-body-base text-body-base shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">
+<p>Anyone hitting the canyons tonight? Weather looks clear and tires are warm.</p>
+</div>
+</div>
+<!-- Message 2: DRIFT_QUEEN (with image) -->
+<div class="flex flex-col items-start w-full max-w-[90%] sm:max-w-[75%]">
+<div class="flex items-center gap-2 mb-1 ml-2">
+<div class="w-6 h-6 rounded-full bg-surface-bright flex items-center justify-center border border-outline-variant overflow-hidden">
+<span class="font-label-caps text-[8px] text-on-surface">DQ</span>
+</div>
+<span class="font-label-caps text-label-caps text-tertiary-fixed">DRIFT_QUEEN</span>
+<span class="text-[10px] text-on-surface-variant/50 font-label-caps tracking-wider">21:12</span>
+</div>
+<div class="bg-surface-container border-l-2 border-tertiary-fixed border-t border-r border-b border-surface-bright rounded-xl rounded-tl-sm p-2 text-on-surface shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">
+<div class="relative rounded-lg overflow-hidden border border-outline-variant/50 mb-3 group">
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 pointer-events-none"></div>
+<img alt="Sleek tuned sports car parked under neon streetlights at night" class="w-full h-[200px] object-cover transition-transform duration-700 group-hover:scale-105" data-alt="sleek black tuned sports car parked under vibrant neon streetlights at night with rain reflections on the asphalt, cinematic moody lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkgv88tLq8GmwqCiAZq2WzDHaUjnd0Uei31SwrujFUHgK-M_j-PcPojuVgFvHJUkDDC6-Ipq6JBcFZmVlQhpJEOI8mkDWEV0_uraAjutUn8ve4_BxGL51vjTj4gFGXjwcUG3V5EzHpvYlrB_8O-kjUa_XZKyyGkZqqkgFzHDMiobOrcSnneaNXdoP-FfoJl36Nw7EYynAzwnIOmnlI4n6KCRri-FdaWFomYEzxhj4mdMtpJLge-HRrDJVKTeljBde0Ao-kFHE64Dw"/>
+<div class="absolute bottom-2 left-2 z-20 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded border border-white/10">
+<span class="material-symbols-outlined text-[14px] text-tertiary-fixed">photo_camera</span>
+<span class="font-label-caps text-[10px] text-tertiary-fixed">IMG_0942.JPG</span>
+</div>
+</div>
+<p class="px-2 pb-2 font-body-base text-body-base text-on-surface-variant">Just finished the new wrap. Coming through later. Don't start without me.</p>
+</div>
+</div>
+<!-- System Notification: Location Update -->
+<div class="flex justify-center w-full my-4">
+<div class="bg-surface-variant/30 border border-primary-container/40 rounded-full px-4 py-2 flex items-center gap-3 backdrop-blur-md shadow-[0_0_15px_rgba(195,244,0,0.05)]">
+<span class="material-symbols-outlined text-primary-container text-sm animate-pulse">radar</span>
+<span class="font-label-caps text-[10px] sm:text-label-caps text-primary-container tracking-widest text-center">LOBBY LOCATION UPDATED TO: IRVINE SPECTRUM TOP FLOOR</span>
+</div>
+</div>
+<!-- Message 3: GTR_BOY -->
+<div class="flex flex-col items-start w-full max-w-[85%] sm:max-w-[70%]">
+<div class="flex items-center gap-2 mb-1 ml-2">
+<div class="w-6 h-6 rounded-full bg-surface-bright flex items-center justify-center border border-outline-variant overflow-hidden">
+<span class="font-label-caps text-[8px] text-on-surface">GB</span>
+</div>
+<span class="font-label-caps text-label-caps text-secondary-fixed">GTR_BOY</span>
+<span class="text-[10px] text-on-surface-variant/50 font-label-caps tracking-wider">21:18</span>
+</div>
+<div class="bg-surface-container border-l-2 border-secondary-fixed border-t border-r border-b border-surface-bright rounded-xl rounded-tl-sm p-4 text-on-surface font-body-base text-body-base shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">
+<p>Copy that. Coordinates locked in. See you up there in 15.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Message Input Field -->
+<div class="fixed bottom-[88px] left-0 w-full px-margin py-4 bg-gradient-to-t from-background via-background/95 to-transparent z-40 pointer-events-none">
+<div class="max-w-container-max mx-auto pointer-events-auto">
+<div class="flex items-center gap-2 bg-surface-container-high rounded-xl p-2 border border-outline-variant focus-within:border-primary-container focus-within:shadow-[0_0_10px_rgba(195,244,0,0.2)] transition-all duration-300 shadow-lg">
+<!-- Attachment Button -->
+<button class="p-3 text-on-surface-variant hover:text-primary-container hover:bg-surface-bright transition-colors rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined">add</span>
+</button>
+<!-- Input Area -->
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface font-body-base text-body-base placeholder:text-on-surface-variant/40 placeholder:font-label-caps placeholder:tracking-widest py-3 px-2 outline-none" placeholder="TRANSMIT MESSAGE..." type="text"/>
+<!-- Send Button -->
+<button class="p-3 bg-primary-container text-on-primary-container rounded-lg flex items-center justify-center hover:bg-primary-fixed transition-colors shadow-[0_0_15px_rgba(195,244,0,0.3)] hover:shadow-[0_0_20px_rgba(195,244,0,0.5)] active:scale-95 duration-150">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+</div>
+<!-- BottomNavBar Shared Component -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-3 pb-6 bg-[#121212] dark:bg-[#121212] border-t border-white/10 rounded-t-none shadow-[0_-4px_20px_rgba(0,0,0,0.8)] relative before:absolute before:inset-0 before:bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMTIxMjEyIj48L3JlY3Q+CjxwYXRoIGQ9Ik0wIDRMNCAwWk00IDRMMCAwWiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utb3BhY2l0eT0iMC4wNSIgc3Ryb2tlLXdpZHRoPSIxIj48L3BhdGg+Cjwvc3ZnPg==')] before:opacity-50 before:pointer-events-none">
+<!-- Chat (Active) -->
+<button class="flex flex-col items-center justify-center text-lime-400 drop-shadow-[0_0_5px_rgba(204,255,0,0.5)] hover:bg-white/5 active:scale-110 transition-transform duration-200 ease-out p-2 rounded-lg relative z-10 w-16">
+<span class="material-symbols-outlined mb-1 text-2xl" style="font-variation-settings: 'FILL' 1;">forum</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-tighter">Chat</span>
+</button>
+<!-- Map (Inactive) -->
+<button class="flex flex-col items-center justify-center text-zinc-600 hover:bg-white/5 active:scale-110 transition-transform duration-200 ease-out p-2 rounded-lg relative z-10 w-16">
+<span class="material-symbols-outlined mb-1 text-2xl" style="font-variation-settings: 'FILL' 0;">explore</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-tighter">Map</span>
+</button>
+<!-- Meets (Inactive) -->
+<button class="flex flex-col items-center justify-center text-zinc-600 hover:bg-white/5 active:scale-110 transition-transform duration-200 ease-out p-2 rounded-lg relative z-10 w-16">
+<span class="material-symbols-outlined mb-1 text-2xl" style="font-variation-settings: 'FILL' 0;">event_seat</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-tighter">Meets</span>
+</button>
+<!-- Squad (Inactive) -->
+<button class="flex flex-col items-center justify-center text-zinc-600 hover:bg-white/5 active:scale-110 transition-transform duration-200 ease-out p-2 rounded-lg relative z-10 w-16">
+<span class="material-symbols-outlined mb-1 text-2xl" style="font-variation-settings: 'FILL' 0;">groups</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-tighter">Squad</span>
+</button>
+</nav>
+</body></html>

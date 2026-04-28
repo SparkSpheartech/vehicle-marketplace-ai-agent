@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sweetride - Media System</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@400;600;700;900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#c4c9ac",
+                        "on-primary-fixed": "#161e00",
+                        "surface-bright": "#393939",
+                        "primary-fixed": "#c3f400",
+                        "tertiary-fixed-dim": "#00dbe9",
+                        "tertiary-container": "#7df4ff",
+                        "on-primary": "#283500",
+                        "on-error-container": "#ffdad6",
+                        "outline": "#8e9379",
+                        "on-surface": "#e5e2e1",
+                        "surface-variant": "#353534",
+                        "surface-dim": "#131313",
+                        "surface-container": "#201f1f",
+                        "on-tertiary-fixed-variant": "#004f54",
+                        "error-container": "#93000a",
+                        "outline-variant": "#444933",
+                        "surface-container-high": "#2a2a2a",
+                        "on-tertiary-container": "#006f77",
+                        "secondary-fixed": "#ffdbd0",
+                        "error": "#ffb4ab",
+                        "on-secondary": "#5e1700",
+                        "tertiary": "#ffffff",
+                        "surface-container-low": "#1c1b1b",
+                        "on-error": "#690005",
+                        "surface-container-highest": "#353534",
+                        "inverse-primary": "#506600",
+                        "background": "#131313",
+                        "secondary": "#ffb59e",
+                        "on-tertiary": "#00363a",
+                        "inverse-surface": "#e5e2e1",
+                        "secondary-fixed-dim": "#ffb59e",
+                        "tertiary-fixed": "#7df4ff",
+                        "on-primary-fixed-variant": "#3c4d00",
+                        "primary-container": "#c3f400",
+                        "surface-container-lowest": "#0e0e0e",
+                        "secondary-container": "#ff571a",
+                        "primary": "#ffffff",
+                        "on-secondary-fixed": "#3a0b00",
+                        "surface-tint": "#abd600",
+                        "on-secondary-container": "#521300",
+                        "on-background": "#e5e2e1",
+                        "primary-fixed-dim": "#abd600",
+                        "surface": "#131313",
+                        "on-secondary-fixed-variant": "#852400",
+                        "on-primary-container": "#556d00",
+                        "on-tertiary-fixed": "#002022",
+                        "inverse-on-surface": "#313030"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin": "24px",
+                        "container-max": "1200px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Space Grotesk"],
+                        "body-base": ["Inter"],
+                        "stats-num": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "display-lg": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "body-base": ["16px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "stats-num": ["32px", { "lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Carbon Fiber Texture Overlay */
+        .carbon-texture {
+            background-image: radial-gradient(circle, transparent 20%, #131313 20%, #131313 80%, transparent 80%, transparent), radial-gradient(circle, transparent 20%, #131313 20%, #131313 80%, transparent 80%, transparent) 25px 25px, linear-gradient(#1c1b1b 2px, transparent 2px) 0 -1px, linear-gradient(90deg, #1c1b1b 2px, #131313 2px) -1px 0;
+            background-size: 50px 50px, 50px 50px, 25px 25px, 25px 25px;
+            opacity: 0.1;
+            mix-blend-mode: multiply;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-base text-body-base h-screen overflow-hidden selection:bg-primary-fixed selection:text-on-primary-fixed relative flex flex-col">
+<!-- Ambient Background -->
+<div class="absolute inset-0 z-0">
+<div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542282088-fe8426682b8f?auto=format&amp;fit=crop&amp;q=80')] bg-cover bg-center blur-[40px] scale-110 opacity-40" data-alt="interior view of a high performance sports car at night driving through a city with neon lights reflecting on the dashboard"></div>
+<div class="absolute inset-0 bg-gradient-to-b from-background/90 via-background/60 to-background/95"></div>
+</div>
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-black/90 backdrop-blur-md docked full-width border-b border-white/10 shadow-[0_0_20px_rgba(204,255,0,0.05)]">
+<button class="text-[#CCFF00] hover:text-[#CCFF00] hover:bg-white/5 transition-all active:scale-95 duration-100 ease-out p-2 -ml-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">tune</span>
+</button>
+<h1 class="text-[#CCFF00] font-['Space_Grotesk'] uppercase tracking-[0.2em] font-bold text-center flex-1">
+            MEDIA SYSTEM
+        </h1>
+<button class="text-[#CCFF00] hover:text-[#CCFF00] hover:bg-white/5 transition-all active:scale-95 duration-100 ease-out p-2 -mr-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</header>
+<!-- Main Canvas -->
+<main class="relative z-10 flex-1 w-full max-w-container-max mx-auto px-margin pt-[88px] pb-[104px] flex flex-col justify-center items-center">
+<!-- Driver Profile Badge (Contextual) -->
+<div class="absolute top-24 left-margin flex items-center gap-3 bg-surface-container/80 backdrop-blur-md border border-white/5 px-4 py-2 rounded-full">
+<div class="w-8 h-8 rounded-full bg-primary-fixed/20 border border-primary-fixed flex items-center justify-center text-primary-fixed">
+<span class="material-symbols-outlined text-[18px]">sports_motorsports</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface tracking-widest">SHIFT_KNG</span>
+</div>
+<!-- Central Media Module -->
+<div class="w-full max-w-[480px] bg-surface-container/60 backdrop-blur-2xl border border-white/10 rounded-xl p-6 md:p-8 flex flex-col gap-8 shadow-2xl relative overflow-hidden">
+<!-- Texture Layer -->
+<div class="absolute inset-0 carbon-texture pointer-events-none"></div>
+<!-- Album Art -->
+<div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-[0_0_40px_rgba(195,244,0,0.15)] group ring-1 ring-white/10">
+<img alt="Album Art" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Retro-futuristic synthwave stylized graphic of a sleek sports car driving on a grid road toward a stylized glowing sunset, vibrant purple and cyan neon colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiCKfX5lUOquC_KTKC_RerX4_RuuSNrFHth_pUmaeFlHnFx1JP1qcJcFtiwiuu7MvWTCm2dwRTYGnt9Fe68c1_MCv1zi6eUy6tNd4ujLPhaETOATPBLjSVaFNjThmDDUImCK4-Pc3p0j3gwxnRchI9tXlG-2uHZc9_t2VLokvGpTWFPdV1vOVjH8fAxQyC-NpVdHQi1WKSsG4N32s9EPe9czNY0vlRmrI9983UYHg3M69CwcKSIBkt3pvoKQwiNyBHEkSsJzVHTzM"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
+<!-- Eq visualizer overlay -->
+<div class="absolute bottom-4 left-4 flex gap-1 items-end h-8">
+<div class="w-1.5 h-full bg-primary-fixed rounded-full animate-[pulse_1s_ease-in-out_infinite]"></div>
+<div class="w-1.5 h-3/4 bg-primary-fixed/80 rounded-full animate-[pulse_1.2s_ease-in-out_infinite_0.1s]"></div>
+<div class="w-1.5 h-1/2 bg-primary-fixed/60 rounded-full animate-[pulse_0.8s_ease-in-out_infinite_0.2s]"></div>
+<div class="w-1.5 h-4/5 bg-primary-fixed/90 rounded-full animate-[pulse_1.5s_ease-in-out_infinite_0.3s]"></div>
+</div>
+</div>
+<!-- Track Info -->
+<div class="flex flex-col items-center text-center gap-2 relative z-10">
+<h2 class="font-headline-md text-headline-md text-primary drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Nightcall</h2>
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Kavinsky</p>
+</div>
+<!-- Telemetry Progress Bar -->
+<div class="flex flex-col gap-2 w-full relative z-10">
+<div class="flex justify-between items-end px-1">
+<span class="font-stats-num text-[12px] font-bold text-primary-fixed drop-shadow-[0_0_5px_rgba(195,244,0,0.5)]">01:42</span>
+<span class="font-stats-num text-[12px] font-bold text-on-surface-variant">04:18</span>
+</div>
+<div class="relative w-full h-2 bg-surface-bright rounded-full overflow-hidden border border-white/5">
+<div class="absolute top-0 left-0 h-full bg-primary-fixed w-[40%] shadow-[0_0_10px_rgba(195,244,0,0.8)]"></div>
+</div>
+<!-- Technical tick marks -->
+<div class="flex justify-between w-full px-1 opacity-30 mt-0.5">
+<div class="h-1 w-[1px] bg-white"></div>
+<div class="h-1.5 w-[1px] bg-white"></div>
+<div class="h-1 w-[1px] bg-white"></div>
+<div class="h-1 w-[1px] bg-white"></div>
+<div class="h-1.5 w-[1px] bg-white"></div>
+<div class="h-1 w-[1px] bg-white"></div>
+<div class="h-1 w-[1px] bg-white"></div>
+<div class="h-1.5 w-[1px] bg-white"></div>
+<div class="h-1 w-[1px] bg-white"></div>
+<div class="h-1 w-[1px] bg-white"></div>
+<div class="h-1.5 w-[1px] bg-white"></div>
+</div>
+</div>
+<!-- Transport Controls -->
+<div class="flex items-center justify-center gap-8 relative z-10">
+<button class="text-on-surface hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-[32px]">skip_previous</span>
+</button>
+<button class="w-16 h-16 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center shadow-[0_0_20px_rgba(195,244,0,0.4)] hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined icon-fill text-[36px]">pause</span>
+</button>
+<button class="text-on-surface hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-[32px]">skip_next</span>
+</button>
+</div>
+<!-- Action Button -->
+<div class="flex justify-center mt-2 relative z-10">
+<button class="group flex items-center gap-2 border border-primary-fixed/50 hover:border-primary-fixed bg-primary-fixed/5 hover:bg-primary-fixed/10 text-primary-fixed px-6 py-3 rounded rounded-lg font-label-caps text-label-caps uppercase tracking-[0.15em] transition-all duration-300 shadow-[0_0_15px_rgba(195,244,0,0.1)] hover:shadow-[0_0_25px_rgba(195,244,0,0.25)]">
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+                    OPEN IN SPOTIFY
+                </button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-4 bg-zinc-950/95 border-t border-white/10 shadow-2xl hidden md:hidden">
+<!-- Dash (Inactive) -->
+<a class="flex flex-col items-center justify-center text-zinc-500 pt-2 pb-3 px-6 hover:bg-white/5 active:translate-y-0.5 transition-transform flex-1" href="#">
+<span class="material-symbols-outlined mb-1">speed</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-black tracking-widest">DASH</span>
+</a>
+<!-- Media (Active) -->
+<a class="flex flex-col items-center justify-center text-[#CCFF00] bg-[#CCFF00]/10 rounded-none border-t-2 border-[#CCFF00] pt-2 pb-3 px-6 hover:bg-white/5 active:translate-y-0.5 transition-transform flex-1 relative -top-[1px]" href="#">
+<span class="material-symbols-outlined mb-1 icon-fill">play_arrow</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-black tracking-widest">MEDIA</span>
+</a>
+<!-- Drive (Inactive) -->
+<a class="flex flex-col items-center justify-center text-zinc-500 pt-2 pb-3 px-6 hover:bg-white/5 active:translate-y-0.5 transition-transform flex-1" href="#">
+<span class="material-symbols-outlined mb-1">explore</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-black tracking-widest">DRIVE</span>
+</a>
+<!-- Vehicle (Inactive) -->
+<a class="flex flex-col items-center justify-center text-zinc-500 pt-2 pb-3 px-6 hover:bg-white/5 active:translate-y-0.5 transition-transform flex-1" href="#">
+<span class="material-symbols-outlined mb-1">settings_input_component</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-black tracking-widest">VEHICLE</span>
+</a>
+</nav>
+<!-- Mobile BottomNav (Visible on small screens) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-4 bg-zinc-950/95 border-t border-white/10 shadow-2xl">
+<a class="flex flex-col items-center justify-center text-zinc-500 pt-2 pb-3 px-4 hover:bg-white/5 active:translate-y-0.5 transition-transform w-1/4" href="#">
+<span class="material-symbols-outlined mb-1">speed</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-black tracking-widest">DASH</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#CCFF00] bg-[#CCFF00]/10 rounded-none border-t-2 border-[#CCFF00] pt-2 pb-3 px-4 hover:bg-white/5 active:translate-y-0.5 transition-transform w-1/4 relative top-[-1px]" href="#">
+<span class="material-symbols-outlined mb-1 icon-fill">play_arrow</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-black tracking-widest">MEDIA</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-500 pt-2 pb-3 px-4 hover:bg-white/5 active:translate-y-0.5 transition-transform w-1/4" href="#">
+<span class="material-symbols-outlined mb-1">explore</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-black tracking-widest">DRIVE</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-500 pt-2 pb-3 px-4 hover:bg-white/5 active:translate-y-0.5 transition-transform w-1/4" href="#">
+<span class="material-symbols-outlined mb-1">settings_input_component</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-black tracking-widest">VEHICLE</span>
+</a>
+</nav>
+</body></html>

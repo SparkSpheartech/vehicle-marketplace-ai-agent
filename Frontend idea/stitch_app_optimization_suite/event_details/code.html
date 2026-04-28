@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CARS &amp; COFFEE IRVINE - SWEETRIDE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&amp;family=Space+Grotesk:wght@600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-container": "#556d00",
+                      "on-secondary-fixed-variant": "#852400",
+                      "on-secondary": "#5e1700",
+                      "error-container": "#93000a",
+                      "on-tertiary-fixed": "#002022",
+                      "surface-variant": "#353534",
+                      "secondary-container": "#ff571a",
+                      "primary-fixed-dim": "#abd600",
+                      "inverse-primary": "#506600",
+                      "surface": "#131313",
+                      "surface-dim": "#131313",
+                      "on-primary": "#283500",
+                      "tertiary-fixed-dim": "#00dbe9",
+                      "secondary": "#ffb59e",
+                      "on-secondary-fixed": "#3a0b00",
+                      "surface-bright": "#393939",
+                      "primary": "#ffffff",
+                      "on-background": "#e5e2e1",
+                      "background": "#131313",
+                      "on-tertiary-fixed-variant": "#004f54",
+                      "secondary-fixed-dim": "#ffb59e",
+                      "tertiary": "#ffffff",
+                      "surface-tint": "#abd600",
+                      "outline": "#8e9379",
+                      "on-surface-variant": "#c4c9ac",
+                      "primary-fixed": "#c3f400",
+                      "on-secondary-container": "#521300",
+                      "surface-container-high": "#2a2a2a",
+                      "on-tertiary-container": "#006f77",
+                      "on-error": "#690005",
+                      "on-tertiary": "#00363a",
+                      "on-surface": "#e5e2e1",
+                      "inverse-on-surface": "#313030",
+                      "secondary-fixed": "#ffdbd0",
+                      "primary-container": "#c3f400",
+                      "outline-variant": "#444933",
+                      "surface-container-low": "#1c1b1b",
+                      "error": "#ffb4ab",
+                      "on-primary-fixed-variant": "#3c4d00",
+                      "on-primary-fixed": "#161e00",
+                      "surface-container-highest": "#353534",
+                      "surface-container-lowest": "#0e0e0e",
+                      "tertiary-fixed": "#7df4ff",
+                      "surface-container": "#201f1f",
+                      "inverse-surface": "#e5e2e1",
+                      "tertiary-container": "#7df4ff",
+                      "on-error-container": "#ffdad6"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "gutter": "16px",
+                      "unit": "4px",
+                      "margin": "24px",
+                      "container-max": "1200px"
+              },
+              "fontFamily": {
+                      "label-caps": [
+                              "Space Grotesk"
+                      ],
+                      "headline-md": [
+                              "Space Grotesk"
+                      ],
+                      "display-lg": [
+                              "Space Grotesk"
+                      ],
+                      "stats-num": [
+                              "Space Grotesk"
+                      ],
+                      "body-base": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.04em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "stats-num": [
+                              "32px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-base": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        .texture-carbon {
+            background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 4px), repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 4px);
+            background-size: 8px 8px;
+        }
+        .hud-glow {
+            box-shadow: 0 0 20px rgba(171, 214, 0, 0.15);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col pt-16 pb-20 md:pb-0 md:pt-16 selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 backdrop-blur-md bg-black/95 dark:bg-zinc-950/95 shadow-[0_4px_20px_rgba(0,0,0,0.5)] border-b border-zinc-800/50">
+<button class="text-zinc-500 hover:text-lime-300 transition-colors active:scale-95 duration-150 p-2 -ml-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="hidden md:flex flex-1 justify-center items-center gap-8 px-8">
+<a class="font-label-caps text-label-caps text-zinc-500 hover:text-lime-300 transition-colors flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[18px]">explore</span>
+                HUB
+            </a>
+<a class="font-label-caps text-label-caps text-zinc-500 hover:text-lime-300 transition-colors flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[18px]">directions_car</span>
+                GARAGE
+            </a>
+<a class="font-label-caps text-label-caps text-lime-400 hover:text-lime-300 transition-colors flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[18px]">groups</span>
+                SOCIAL
+            </a>
+<a class="font-label-caps text-label-caps text-zinc-500 hover:text-lime-300 transition-colors flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[18px]">person</span>
+                PROFILE
+            </a>
+</div>
+<div class="md:hidden flex-1 flex justify-center">
+<span class="text-lime-400 italic font-black text-2xl tracking-tighter uppercase font-['Space_Grotesk']">SWEETRIDE</span>
+</div>
+<button class="text-zinc-500 hover:text-lime-300 transition-colors active:scale-95 duration-150 p-2 -mr-2">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<main class="flex-grow w-full max-w-[container-max] mx-auto px-4 sm:px-6 md:px-margin pt-gutter flex flex-col gap-gutter">
+<!-- Hero Section -->
+<section class="relative w-full h-[353px] md:h-[442px] rounded-lg overflow-hidden border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+<img alt="Cinematic shot of a classic silver Porsche 911 parked at a hazy morning meetup, warm sunlight reflecting off the chrome." class="absolute inset-0 w-full h-full object-cover object-center" data-alt="Cinematic shot of a classic silver Porsche 911 parked at a hazy morning meetup, warm sunlight reflecting off the chrome." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIJfPSBlj44ilFf9Au-DewNd31RLKfvI4BrkicMcItNx8LQACzfSRqTaDkEqJd-g5u1Nb2Ecab5UZtyCxwsI69obb19GrmTuDEm_074FB6WhF0mPdj4lGV7FTitwgrriN4kVRiClCI0YIM3uSuRtJZy14DfqzkPr0T8bKhEErdS5V-ExhtZM52PhrU0LBE9Fm4IqdllM9iKcg0v3MBR9Z_ytNe_glcTfxmk66knS0O3W1bMrsCHNaLTkoZ7DP4126N3pRutVpBJ1g"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-6 md:p-8 flex flex-col gap-unit">
+<div class="flex items-center gap-3 mb-2">
+<span class="bg-primary-container text-on-primary-container font-label-caps text-label-caps px-2 py-1 rounded">MEETUP</span>
+<span class="text-surface-tint font-label-caps text-label-caps flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+                        OCT 14, 2023 // 08:00 AM
+                    </span>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary uppercase tracking-tighter">CARS &amp; COFFEE IRVINE</h1>
+</div>
+</section>
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Left Column: Details -->
+<div class="md:col-span-8 flex flex-col gap-gutter">
+<!-- Description Card -->
+<div class="bg-surface-container border border-surface-variant rounded-lg p-6 relative overflow-hidden texture-carbon">
+<h2 class="font-label-caps text-label-caps text-outline uppercase mb-4 tracking-widest border-b border-surface-variant pb-2">Mission Brief</h2>
+<p class="font-body-base text-body-base text-on-surface">
+                        Weekly morning meetup for high-performance vehicles and classics. Free coffee for the first 50 drivers. Respect the lot, no revving, no burnouts. Law enforcement will be present.
+                    </p>
+</div>
+<!-- Host & Location -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-gutter">
+<!-- Host -->
+<a class="bg-surface-container border border-surface-variant rounded-lg p-5 flex items-center gap-4 hover:border-surface-tint/50 hover:bg-surface-container-high transition-all group texture-carbon relative overflow-hidden" href="#">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest border border-surface-variant overflow-hidden shrink-0">
+<img alt="Black sports car steering wheel with carbon fiber details." class="w-full h-full object-cover" data-alt="Black sports car steering wheel with carbon fiber details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2EFR2EgMG0UWiU3p2FeVGvuw6iTxBV69Zl2i6PHs8UOKCmKaMSLLp9mBvhmuvVyyGLWVpLtQkMhwKZMNPjt-mEE_j_73lOFyApSBE0hHHlm6mZdA_kA63CggNrnu63BN4q-S0Uoyqu1HdsCWvvfHHW_7NWRiWRdlNwv5do8zUgwSL7D11KJf5-VsEG8xYcP7Xh6ux4DFJnG1MNK9SjYah0BsSLU-RuSPS1A-Tm6eDDd0pCjHXHl0sWbJc5dAJOtuZ7dDfqd514Zs"/>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-outline mb-1">HOSTED BY</span>
+<span class="font-headline-md text-body-base text-primary uppercase tracking-tight group-hover:text-surface-tint transition-colors">STREET_ELITE</span>
+</div>
+<span class="material-symbols-outlined text-outline ml-auto group-hover:text-surface-tint group-hover:translate-x-1 transition-all">chevron_right</span>
+</a>
+<!-- Location -->
+<div class="bg-surface-container border border-surface-variant rounded-lg p-5 flex flex-col gap-2 texture-carbon">
+<span class="font-label-caps text-label-caps text-outline">LOCATION TACTICAL</span>
+<div class="flex items-start gap-3 mt-1">
+<span class="material-symbols-outlined text-surface-tint mt-0.5">location_on</span>
+<div class="flex flex-col">
+<span class="font-body-base text-body-base font-bold text-primary">Irvine Spectrum Center</span>
+<span class="font-body-base text-[14px] text-on-surface-variant">Lot 4, Near Ferris Wheel</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Discussion Section -->
+<div class="bg-surface-container border border-surface-variant rounded-lg p-6 relative overflow-hidden texture-carbon flex flex-col gap-6">
+<div class="flex justify-between items-end border-b border-surface-variant pb-2">
+<h2 class="font-label-caps text-label-caps text-outline uppercase tracking-widest">COMMS FEED</h2>
+<span class="font-label-caps text-label-caps text-surface-tint">12 TRANSMISSIONS</span>
+</div>
+<!-- Input -->
+<div class="flex gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-surface-variant overflow-hidden shrink-0 mt-1">
+<img alt="Profile picture of user in helmet." class="w-full h-full object-cover grayscale" data-alt="Profile picture of user in helmet." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxs9FE2kEZXE3N4tia20ReTOLFPoIHvyqvPSZ9Ii4Xc_ejVGZNzhPHGADCgwcar0cY7bCFe-WXNcDP_aqmqiNHQmPFU0q9iPPTSM0jgmbyV6spMUV4wvAACxRAokQ4oaeYX3RGCvwOroy2WIdqDluF0XwvtAtk75-67JthBpj3RkRIpwEaP1kohDmKs1jNPVOoisAt-xwGuDCbVfi2vmZkZiVdufOfjND0KDpjosQ6Uef6CH2oPxyN3nH12UBS8tUu-OuKKa1lmog"/>
+</div>
+<div class="flex-grow flex gap-2">
+<input class="w-full bg-surface-container-lowest border border-surface-variant rounded text-primary font-body-base text-body-base focus:ring-1 focus:ring-surface-tint focus:border-surface-tint placeholder-on-surface-variant/50 p-3" placeholder="Transmit message..." type="text"/>
+<button class="bg-surface-variant text-on-surface px-4 rounded font-label-caps text-label-caps hover:bg-surface-bright transition-colors border border-surface-variant">SEND</button>
+</div>
+</div>
+<!-- Comments -->
+<div class="flex flex-col gap-5">
+<div class="flex gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-surface-variant shrink-0 flex items-center justify-center font-label-caps text-[10px] text-primary">D1</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-primary">DRIFT_KING_99</span>
+<span class="font-body-base text-[12px] text-on-surface-variant">2h ago</span>
+</div>
+<p class="font-body-base text-body-base text-on-surface">Is there reserved parking for imports?</p>
+</div>
+</div>
+<div class="flex gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-surface-variant shrink-0 flex items-center justify-center font-label-caps text-[10px] text-primary">M3</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-primary text-surface-tint">M3_MASTER</span>
+<span class="bg-surface-variant text-[10px] px-1 rounded text-outline font-label-caps">HOST</span>
+<span class="font-body-base text-[12px] text-on-surface-variant">1h ago</span>
+</div>
+<p class="font-body-base text-body-base text-on-surface">First come, first serve this week. Get here early.</p>
+</div>
+</div>
+<div class="flex gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-surface-variant shrink-0 flex items-center justify-center font-label-caps text-[10px] text-primary">V8</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-primary">V8_SYNDICATE</span>
+<span class="font-body-base text-[12px] text-on-surface-variant">15m ago</span>
+</div>
+<p class="font-body-base text-body-base text-on-surface">See you guys there! Bringing the new build.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Stats & Action -->
+<div class="md:col-span-4 flex flex-col gap-gutter">
+<!-- Telemetry Stats -->
+<div class="bg-surface-container border border-surface-variant rounded-lg p-6 relative overflow-hidden texture-carbon hud-glow flex flex-col items-center justify-center text-center">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-widest mb-2">GRID STATUS</span>
+<span class="font-stats-num text-[64px] leading-none text-primary tracking-tighter mb-1">142</span>
+<span class="font-label-caps text-label-caps text-surface-tint flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">speed</span>
+                        DRIVERS INTERESTED
+                    </span>
+</div>
+<!-- Action Panel -->
+<div class="bg-surface-container-low border border-surface-variant rounded-lg p-6 flex flex-col gap-4">
+<button class="w-full bg-primary-container text-on-primary-container font-label-caps text-label-caps py-4 rounded hover:bg-surface-tint active:scale-95 transition-all uppercase tracking-widest border border-primary-fixed-dim/50 shadow-[0_0_15px_rgba(171,214,0,0.2)]">
+                        CONFIRM ATTENDANCE
+                    </button>
+<button class="w-full bg-transparent border border-surface-variant text-primary font-label-caps text-label-caps py-3 rounded hover:bg-surface-container-high hover:border-outline transition-all uppercase tracking-widest flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]">share</span>
+                        SHARE EVENT
+                    </button>
+</div>
+<!-- Mini Map Spec -->
+<div class="bg-surface-container border border-surface-variant rounded-lg h-48 relative overflow-hidden p-1">
+<div class="absolute inset-1 bg-[#0a0a0a] rounded border border-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-surface-variant text-4xl">map</span>
+<!-- Placeholder for actual map integration -->
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 h-20 bg-black/90 backdrop-blur-xl border-t rounded-t-lg border-zinc-800 shadow-[0_-8px_30px_rgba(0,0,0,0.8)]">
+<a class="flex flex-col items-center justify-center text-zinc-600 hover:bg-zinc-900 transition-all active:scale-90 duration-200 w-16 h-12 rounded-lg" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-widest mt-1">HUB</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-600 hover:bg-zinc-900 transition-all active:scale-90 duration-200 w-16 h-12 rounded-lg" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-widest mt-1">GARAGE</span>
+</a>
+<a class="flex flex-col items-center justify-center text-lime-400 bg-lime-400/10 rounded-md py-1 shadow-[0_0_15px_rgba(204,255,0,0.2)] w-16 h-12 hover:bg-zinc-900 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-widest mt-1">SOCIAL</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-600 hover:bg-zinc-900 transition-all active:scale-90 duration-200 w-16 h-12 rounded-lg" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-widest mt-1">PROFILE</span>
+</a>
+</nav>
+</body></html>

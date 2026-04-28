@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sweetride - Garage</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&amp;family=Inter:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-fixed": "#3a0b00",
+                      "secondary-fixed-dim": "#ffb59e",
+                      "on-tertiary-container": "#006f77",
+                      "outline": "#8e9379",
+                      "surface-container-high": "#2a2a2a",
+                      "outline-variant": "#444933",
+                      "on-secondary": "#5e1700",
+                      "on-surface": "#e5e2e1",
+                      "on-primary-fixed": "#161e00",
+                      "primary-fixed-dim": "#abd600",
+                      "secondary-fixed": "#ffdbd0",
+                      "tertiary": "#ffffff",
+                      "surface-container": "#201f1f",
+                      "on-background": "#e5e2e1",
+                      "on-tertiary-fixed-variant": "#004f54",
+                      "tertiary-fixed-dim": "#00dbe9",
+                      "error": "#ffb4ab",
+                      "on-secondary-container": "#521300",
+                      "background": "#131313",
+                      "surface": "#131313",
+                      "primary-container": "#c3f400",
+                      "tertiary-fixed": "#7df4ff",
+                      "on-primary-fixed-variant": "#3c4d00",
+                      "tertiary-container": "#7df4ff",
+                      "on-surface-variant": "#c4c9ac",
+                      "inverse-on-surface": "#313030",
+                      "secondary-container": "#ff571a",
+                      "primary": "#ffffff",
+                      "on-error-container": "#ffdad6",
+                      "secondary": "#ffb59e",
+                      "surface-tint": "#abd600",
+                      "surface-container-highest": "#353534",
+                      "on-tertiary": "#00363a",
+                      "surface-bright": "#393939",
+                      "surface-dim": "#131313",
+                      "inverse-primary": "#506600",
+                      "error-container": "#93000a",
+                      "surface-container-low": "#1c1b1b",
+                      "surface-variant": "#353534",
+                      "surface-container-lowest": "#0e0e0e",
+                      "on-error": "#690005",
+                      "on-tertiary-fixed": "#002022",
+                      "on-secondary-fixed-variant": "#852400",
+                      "inverse-surface": "#e5e2e1",
+                      "primary-fixed": "#c3f400",
+                      "on-primary": "#283500",
+                      "on-primary-container": "#556d00"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "container-max": "1200px",
+                      "margin": "24px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "label-caps": [
+                              "Space Grotesk"
+                      ],
+                      "display-lg": [
+                              "Space Grotesk"
+                      ],
+                      "body-base": [
+                              "Inter"
+                      ],
+                      "stats-num": [
+                              "Space Grotesk"
+                      ],
+                      "headline-md": [
+                              "Space Grotesk"
+                      ]
+              },
+              "fontSize": {
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.04em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-base": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "stats-num": [
+                              "32px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .carbon-pattern {
+            background-color: transparent;
+            background-image: radial-gradient(#111 15%, transparent 16%), radial-gradient(#111 15%, transparent 16%);
+            background-size: 8px 8px;
+            background-position: 0 0, 4px 4px;
+        }
+        .milled-edge {
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-base pb-24 md:pb-0 pt-16">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 border-b border-white/10 shadow-[0_0_15px_rgba(204,255,0,0.1)] bg-black/90 backdrop-blur-md flex justify-between items-center px-6 h-16">
+<button class="text-[#CCFF00] hover:text-[#CCFF00] transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-2xl font-black text-[#CCFF00] italic font-space-grotesk tracking-tighter uppercase">SWEETRIDE</h1>
+<div class="w-8 h-8 rounded-full overflow-hidden milled-edge">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="close up of a modern minimalist user avatar profile picture with dramatic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEpLHvdwH-E588NLhkFib1WnzvnGj8TobkrphkkrHVhGqC7dz89_bNjr1lxFTZdkG8EtbXVT5Urf0wXCPUpay_nLFA2fTCSiD4ALVqFoMArTwgpgDEjtHmet0JeLkQblLMbnIITCVGiaVggtFCoOb7V2YD2zQwwFYOJJa0utgmgedSsFN0h5fbYFnVv9j2sWwcKchPSs87sWdxRPLLb6WmBrL3CqsjTNZ0KVMx93bQcui2aYC8YdgGI4uAYEfTtS41IEdMSdMJ3KM"/>
+</div>
+</header>
+<main class="max-w-container-max mx-auto md:px-margin">
+<!-- Hero Section -->
+<section class="relative w-full h-[397px] md:h-[530px] md:rounded-xl overflow-hidden md:mt-margin milled-edge">
+<img alt="2022 Porsche 911 GT3" class="w-full h-full object-cover" data-alt="silver 2022 Porsche 911 GT3 parked in an industrial warehouse with moody cinematic lighting reflecting off the metallic paint" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEa71Vft3THkoJ-WpRp3_IHwMy0wvACsNTfhkHXeeDoVgJQTHwDBSIqMhK6qS8LpAHtLMfk6VCnL0YGOs4n1J9ZXrXkrCi_GTd4WsQKx4y6epfdPP3X855Ot52HFaUIunvHxS7rTwgWxjLI6zox3vpRxkpZ7VeEp8xAFrMS4Kh78Qr9TAzNOIzuYPVb7wG3WJdlbaveKlzsB__Mk5anygZn9AIc7SbDM0PO8S0WHlG_k7GFAjPdqst-stk5wGAzP71UA-m-zXVrw4"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"></div>
+<div class="absolute top-4 left-4">
+<span class="inline-flex items-center px-2 py-1 rounded bg-primary-container text-on-primary-container font-label-caps text-label-caps shadow-[0_0_10px_rgba(195,244,0,0.5)]">
+<span class="w-1.5 h-1.5 rounded-full bg-black mr-1 animate-pulse"></span>
+                    ACTIVE
+                </span>
+</div>
+<div class="absolute bottom-6 left-6 right-6">
+<h2 class="font-display-lg text-display-lg text-tertiary mb-2 drop-shadow-md">2022 Porsche 911 GT3</h2>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="px-6 md:px-0 py-6 grid grid-cols-2 md:grid-cols-4 gap-gutter">
+<div class="bg-surface-container-high rounded-xl p-4 milled-edge relative overflow-hidden group hover:shadow-[0_0_15px_rgba(195,244,0,0.2)] transition-shadow">
+<div class="absolute inset-0 carbon-pattern opacity-10 pointer-events-none"></div>
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase">Engine</p>
+<p class="font-stats-num text-stats-num text-primary-fixed">4.0L</p>
+<p class="font-body-base text-body-base text-on-surface opacity-80 text-sm">Flat-6</p>
+</div>
+<div class="bg-surface-container-high rounded-xl p-4 milled-edge relative overflow-hidden group hover:shadow-[0_0_15px_rgba(195,244,0,0.2)] transition-shadow">
+<div class="absolute inset-0 carbon-pattern opacity-10 pointer-events-none"></div>
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase">Power</p>
+<p class="font-stats-num text-stats-num text-primary-fixed">502</p>
+<p class="font-body-base text-body-base text-on-surface opacity-80 text-sm">HP</p>
+</div>
+<div class="bg-surface-container-high rounded-xl p-4 milled-edge relative overflow-hidden group hover:shadow-[0_0_15px_rgba(195,244,0,0.2)] transition-shadow">
+<div class="absolute inset-0 carbon-pattern opacity-10 pointer-events-none"></div>
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase">Top Speed</p>
+<p class="font-stats-num text-stats-num text-primary-fixed">197</p>
+<p class="font-body-base text-body-base text-on-surface opacity-80 text-sm">MPH</p>
+</div>
+<div class="bg-surface-container-high rounded-xl p-4 milled-edge relative overflow-hidden group hover:shadow-[0_0_15px_rgba(195,244,0,0.2)] transition-shadow">
+<div class="absolute inset-0 carbon-pattern opacity-10 pointer-events-none"></div>
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase">0-60</p>
+<p class="font-stats-num text-stats-num text-primary-fixed">3.2<span class="text-lg">s</span></p>
+<p class="font-body-base text-body-base text-on-surface opacity-80 text-sm">Sec</p>
+</div>
+</section>
+<!-- Primary Action -->
+<section class="px-6 md:px-0 pb-8">
+<button class="w-full md:w-auto md:px-8 py-3 rounded border border-primary-fixed text-primary-fixed font-label-caps text-label-caps uppercase hover:bg-primary-fixed/10 hover:shadow-[0_0_15px_rgba(195,244,0,0.3)] transition-all flex justify-center items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">build</span>
+                MANAGE SETUP
+            </button>
+</section>
+<!-- Modifications Section -->
+<section class="px-6 md:px-0 pb-8">
+<h3 class="font-headline-md text-headline-md text-tertiary mb-4 border-b border-white/10 pb-2">Modifications</h3>
+<div class="space-y-3">
+<div class="flex items-center gap-4 bg-surface-container rounded-lg p-4 milled-edge border border-transparent hover:border-primary-fixed/30 transition-colors">
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center text-primary-fixed milled-edge">
+<span class="material-symbols-outlined">speed</span>
+</div>
+<div class="flex-1">
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase">PERFORMANCE</p>
+<p class="font-body-base text-body-base font-bold text-on-surface">Stage 2 Tune</p>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-container rounded-lg p-4 milled-edge border border-transparent hover:border-primary-fixed/30 transition-colors">
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center text-primary-fixed milled-edge">
+<span class="material-symbols-outlined">design_services</span>
+</div>
+<div class="flex-1">
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase">AESTHETICS</p>
+<p class="font-body-base text-body-base font-bold text-on-surface">Carbon Aero Kit</p>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-container rounded-lg p-4 milled-edge border border-transparent hover:border-primary-fixed/30 transition-colors">
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center text-primary-fixed milled-edge">
+<span class="material-symbols-outlined">settings_input_composite</span>
+</div>
+<div class="flex-1">
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase">HANDLING</p>
+<p class="font-body-base text-body-base font-bold text-on-surface">Coilover Suspension</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Collection Section -->
+<section class="px-6 md:px-0 pb-12">
+<div class="flex justify-between items-baseline mb-4 border-b border-white/10 pb-2">
+<h3 class="font-headline-md text-headline-md text-tertiary">Your Collection</h3>
+<a class="font-label-caps text-label-caps text-primary-fixed uppercase hover:underline" href="#">VIEW ALL</a>
+</div>
+<div class="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory hide-scrollbar">
+<!-- Card 1 -->
+<div class="min-w-[280px] md:min-w-[320px] bg-surface-container rounded-xl overflow-hidden milled-edge snap-start group cursor-pointer relative">
+<div class="absolute inset-0 carbon-pattern opacity-5 pointer-events-none z-10 group-hover:opacity-10 transition-opacity"></div>
+<div class="h-32 overflow-hidden relative">
+<img alt="1993 Mazda RX-7" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="red 1993 Mazda RX-7 modified street car parked in a neon-lit dark alleyway" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAps9xSkP_NqFIE1PQ7CovanZzdnEZJPtLdzoPc2YobMDD-v8WmBFXjmqUB3wVodUV8wERjbcjDVco6Ye5eNDGus12PSkxGAWHIh1hjsk4nr3t332FmZXkAs7swM3VwNt2edQdyAMcQq3qHK-yudBrmznMwBEHgPpOEacQyU_INxoxGkpxI7kmP5Jdsg3lI8RPtZpP55qjJ9tUpbEcmTqNTLElLmbHvs2Yi6BVajDVCvOe7SDZ-8Bd7bnDEMebTS8-E3IwYMoYGfJA"/>
+</div>
+<div class="p-4 relative z-20 bg-gradient-to-t from-surface-container to-surface-container/90">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase">Street Build</p>
+<h4 class="font-headline-md text-headline-md text-tertiary text-[18px]">1993 Mazda RX-7</h4>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="min-w-[280px] md:min-w-[320px] bg-surface-container rounded-xl overflow-hidden milled-edge snap-start group cursor-pointer relative">
+<div class="absolute inset-0 carbon-pattern opacity-5 pointer-events-none z-10 group-hover:opacity-10 transition-opacity"></div>
+<div class="h-32 overflow-hidden relative">
+<img alt="2018 Ford Mustang GT" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="black 2018 Ford Mustang GT driving on a winding coastal road at sunset with aggressive stance" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfC7hzal8EJp9GONoKX-bvX6nfqkxqBhcdwGl-Bc1xFEVA6VmgJAXgrlVVmPM3MUFlh88LsFxlUkinZrFVe7NeIGFjXyGhND7bXESkTalrLbA_R6ziKJ6j_HWjgnvhkKus8f1c4jHKcIh_1TqVmnYHPFViMWiQaj47j8TTVomrYmezw5l6-20n8aYtSrbM92XQ81QlwsKFbe2Hg6AWYIO2CVhfzEoW3bAVwpzIremiMdyJI_-KeG2yyTJsKwMkXjt6t-uv05a25Lo"/>
+</div>
+<div class="p-4 relative z-20 bg-gradient-to-t from-surface-container to-surface-container/90">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase">Daily Driver</p>
+<h4 class="font-headline-md text-headline-md text-tertiary text-[18px]">2018 Ford Mustang GT</h4>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full h-20 flex justify-around items-center px-4 pb-4 z-50 border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] bg-black/95 backdrop-blur-lg">
+<button class="flex flex-col items-center justify-center text-white/40 hover:text-white transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined mb-1 text-[24px]">map</span>
+<span class="font-space-grotesk text-[10px] font-bold uppercase tracking-widest">Map</span>
+</button>
+<button class="flex flex-col items-center justify-center text-white/40 hover:text-white transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined mb-1 text-[24px]">sports_esports</span>
+<span class="font-space-grotesk text-[10px] font-bold uppercase tracking-widest">Lobbies</span>
+</button>
+<button class="flex flex-col items-center justify-center text-white/40 hover:text-white transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined mb-1 text-[24px]">groups</span>
+<span class="font-space-grotesk text-[10px] font-bold uppercase tracking-widest">Meets</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#CCFF00] drop-shadow-[0_0_8px_rgba(204,255,0,0.5)] hover:text-white transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined mb-1 text-[24px]" style="font-variation-settings: 'FILL' 1;">directions_car</span>
+<span class="font-space-grotesk text-[10px] font-bold uppercase tracking-widest text-[#CCFF00]">Garage</span>
+</button>
+<button class="flex flex-col items-center justify-center text-white/40 hover:text-white transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined mb-1 text-[24px]">settings_input_component</span>
+<span class="font-space-grotesk text-[10px] font-bold uppercase tracking-widest">Squad</span>
+</button>
+</nav>
+<style>
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</body></html>
