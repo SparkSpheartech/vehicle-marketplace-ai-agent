@@ -120,10 +120,10 @@ const Navbar = () => {
               onClick={() => navigate('/dashboard')}
               className="flex items-center gap-2"
             >
-              <div className="w-8 h-8 bg-neon-green flex items-center justify-center">
-                <span className="font-unbounded font-bold text-black text-sm">K</span>
+              <div className="w-8 h-8 bg-primary-fixed flex items-center justify-center">
+                <span className="font-space-grotesk font-black italic text-black text-sm">S</span>
               </div>
-              <span className="font-unbounded font-bold text-lg hidden sm:block">KYNETIK</span>
+              <span className="font-space-grotesk font-black italic text-xl hidden sm:block text-primary-fixed tracking-widest uppercase">SWEETRIDE</span>
             </button>
 
             {/* Desktop Navigation */}
