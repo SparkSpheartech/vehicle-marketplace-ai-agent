@@ -5,6 +5,16 @@
 
 ---
 
+## ❌ The Problem
+
+Vehicle marketplaces suffer from three critical failures: buyers can't find the right car among thousands of listings, sellers create poor listings that don't sell, and dealers waste time on unqualified leads. Manual listing creation, stale pricing, and slow buyer follow-up mean cars sit on the lot longer and sell for less.
+
+**Before:** Generic search with irrelevant results, poor seller listings, stale pricing, slow follow-up, cars sitting for 60+ days.
+
+**After (AI Agent Fleet):** AI-powered search that learns buyer preferences, auto-optimized listings with market pricing, instant test drive booking, and automated deal-closing follow-up. Cars sell 3x faster.
+
+---
+
 ## 🧠 AI Agent Architecture
 
 ```mermaid
